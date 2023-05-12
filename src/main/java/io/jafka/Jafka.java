@@ -69,14 +69,10 @@ public class Jafka implements Closeable {
             serverStartable = new ServerStartable(config, consumerConfig, producerConfig);
         }
         //
-        shutdownHook = new Thread() {
-
-            @Override
-            public void run() {
-                serverStartable.close();
-                serverStartable.awaitShutdown();
-            }
-        };
+        shutdownHook = new Thread(() -> {
+            serverStartable.close();
+            serverStartable.awaitShutdown();
+        });
         Runtime.getRuntime().addShutdownHook(shutdownHook);
         //
         serverStartable.startup();
