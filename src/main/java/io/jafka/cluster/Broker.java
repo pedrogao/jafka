@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,7 +49,8 @@ public class Broker {
      */
     public final int port;
 
-    public final boolean autocreated;
+    public final boolean autoCreated;
+
     /**
      * create a broker
      *
@@ -57,15 +58,15 @@ public class Broker {
      * @param creatorId the creator id
      * @param host      broker hostname
      * @param port      broker port
-     * @param autocreated auto-create new topics
+     * @param autoCreated auto-create new topics
      */
-    public Broker(int id, String creatorId, String host, int port,boolean autocreated) {
+    public Broker(int id, String creatorId, String host, int port, boolean autoCreated) {
         super();
         this.id = id;
         this.creatorId = creatorId;
         this.host = host;
         this.port = port;
-        this.autocreated = autocreated;
+        this.autoCreated = autoCreated;
     }
 
     /**
@@ -76,7 +77,7 @@ public class Broker {
      * @return broker info saved in zookeeper
      */
     public String getZKString() {
-        return String.format("%s:%s:%s:%s", creatorId.replace(':', '#'), host.replace(':', '#'), port, autocreated);
+        return String.format("%s:%s:%s:%s", creatorId.replace(':', '#'), host.replace(':', '#'), port, autoCreated);
     }
 
     @Override
@@ -91,7 +92,7 @@ public class Broker {
 
         Broker broker = (Broker) o;
 
-        if (autocreated != broker.autocreated) return false;
+        if (autoCreated != broker.autoCreated) return false;
         if (id != broker.id) return false;
         if (port != broker.port) return false;
         if (host != null ? !host.equals(broker.host) : broker.host != null) return false;
@@ -104,7 +105,7 @@ public class Broker {
         int result = id;
         result = 31 * result + (host != null ? host.hashCode() : 0);
         result = 31 * result + port;
-        result = 31 * result + (autocreated ? 1 : 0);
+        result = 31 * result + (autoCreated ? 1 : 0);
         return result;
     }
 
@@ -121,8 +122,8 @@ public class Broker {
         String creator = brokerInfo[0].replace('#', ':');
         String hostname = brokerInfo[1].replace('#', ':');
         String port = brokerInfo[2];
-        boolean autocreated = Boolean.valueOf(brokerInfo.length > 3 ? brokerInfo[3] : "true");
-        return new Broker(id, creator, hostname, Integer.parseInt(port), autocreated);
+        boolean autoCreated = Boolean.valueOf(brokerInfo.length > 3 ? brokerInfo[3] : "true");
+        return new Broker(id, creator, hostname, Integer.parseInt(port), autoCreated);
     }
 
 }

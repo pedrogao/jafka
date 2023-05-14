@@ -45,15 +45,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     private Logger logger = LoggerFactory.getLogger(getClass());
     private HttpRequest request;
     final HttpServer server;
-    public HttpServerHandler(HttpServer server){
+
+    public HttpServerHandler(HttpServer server) {
         this.server = server;
     }
+
     /**
      * Buffer that stores the response content
      */
     //private final StringBuilder body = new StringBuilder();
     private ByteArrayOutputStream body;
-    private Map<String,String> args = null;
+    private Map<String, String> args = null;
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -61,7 +63,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception{
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
             HttpRequest request = this.request = (HttpRequest) msg;
 
@@ -80,9 +82,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             // 处理 text or octstream
             String key = headers.get("key");
             key = key != null ? key : headers.get("request_key");
-            args.put("key",key);
-            args.put("topic",headers.get("topic"));
-            args.put("partition",headers.get("partition"));
+            args.put("key", key);
+            args.put("topic", headers.get("topic"));
+            args.put("partition", headers.get("partition"));
         }
 
         if (msg instanceof HttpContent) {
@@ -91,13 +93,13 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             ByteBuf content = httpContent.content();
             if (content.isReadable()) {
                 //body.write(content.array());
-                content.readBytes(body,content.readableBytes());
+                content.readBytes(body, content.readableBytes());
                 //body.append(content.toString(CharsetUtil.UTF_8));
             }
 
             if (msg instanceof LastHttpContent) {
                 //process request
-                if(server.handler != null) {
+                if (server.handler != null) {
                     server.handler.handle(args, body.toByteArray());
                 }
                 if (!writeResponse(ctx)) {

@@ -34,7 +34,7 @@ public class ErrorMappingTest {
     public void testValueOfException() {
         assertEquals(ErrorMapping.OffsetOutOfRangeCode, ErrorMapping.valueOf(new OffsetOutOfRangeException()));
         assertEquals(ErrorMapping.InvalidFetchSizeCode, ErrorMapping.valueOf(new InvalidMessageSizeException()));
-        assertEquals(ErrorMapping.UnkonwCode, ErrorMapping.valueOf(new NullPointerException()));
+        assertEquals(ErrorMapping.UnknownCode, ErrorMapping.valueOf(new NullPointerException()));
     }
 
     /**
@@ -42,7 +42,7 @@ public class ErrorMappingTest {
      */
     @Test
     public void testValueOfShort() {
-        assertEquals(ErrorMapping.UnkonwCode, ErrorMapping.valueOf((short) 100));
+        assertEquals(ErrorMapping.UnknownCode, ErrorMapping.valueOf((short) 100));
         for (ErrorMapping em : ErrorMapping.values()) {
             assertEquals(em, ErrorMapping.valueOf(em.code));
         }

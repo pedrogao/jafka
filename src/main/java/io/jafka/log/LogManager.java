@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -82,12 +82,12 @@ public class LogManager implements PartitionChooser, Closeable {
     final CountDownLatch startupLatch;
 
     //
-    private final Pool<String, Pool<Integer, Log>> logs = new Pool<String, Pool<Integer, Log>>();
+    private final Pool<String, Pool<Integer, Log>> logs = new Pool<>();
 
     private final Scheduler logFlusherScheduler = new Scheduler(1, "jafka-logflusher-", false);
 
     //
-    private final LinkedBlockingQueue<TopicTask> topicRegisterTasks = new LinkedBlockingQueue<TopicTask>();
+    private final LinkedBlockingQueue<TopicTask> topicRegisterTasks = new LinkedBlockingQueue<>();
 
     private volatile boolean stopTopicRegisterTasks = false;
 
@@ -102,7 +102,7 @@ public class LogManager implements PartitionChooser, Closeable {
 
     private final Map<String, Integer> topicPartitionsMap;
 
-    private RollingStrategy rollingStategy;
+    private RollingStrategy rollingStrategy;
 
     private final int maxMessageSize;
 
@@ -131,13 +131,13 @@ public class LogManager implements PartitionChooser, Closeable {
         //
     }
 
-    public void setRollingStategy(RollingStrategy rollingStategy) {
-        this.rollingStategy = rollingStategy;
+    public void setRollingStrategy(RollingStrategy rollingStrategy) {
+        this.rollingStrategy = rollingStrategy;
     }
 
     public void load() throws IOException {
-        if (this.rollingStategy == null) {
-            this.rollingStategy = new FixedSizeRollingStrategy(config.getLogFileSize());
+        if (this.rollingStrategy == null) {
+            this.rollingStrategy = new FixedSizeRollingStrategy(config.getLogFileSize());
         }
         if (!logDir.exists()) {
             logger.info("No log directory found, creating '" + logDir.getAbsolutePath() + "'");
@@ -157,12 +157,12 @@ public class LogManager implements PartitionChooser, Closeable {
                     if (-1 == topicNameAndPartition.indexOf('-')) {
                         throw new IllegalArgumentException("error topic directory: " + dir.getAbsolutePath());
                     }
-                    final KV<String, Integer> topicPartion = Utils.getTopicPartition(topicNameAndPartition);
-                    final String topic = topicPartion.k;
-                    final int partition = topicPartion.v;
-                    Log log = new Log(dir, partition, this.rollingStategy, flushInterval, needRecovery, maxMessageSize);
+                    final KV<String, Integer> topicPartition = Utils.getTopicPartition(topicNameAndPartition);
+                    final String topic = topicPartition.k;
+                    final int partition = topicPartition.v;
+                    Log log = new Log(dir, partition, this.rollingStrategy, flushInterval, needRecovery, maxMessageSize);
 
-                    logs.putIfNotExists(topic, new Pool<Integer, Log>());
+                    logs.putIfNotExists(topic, new Pool<>());
                     Pool<Integer, Log> parts = logs.get(topic);
 
                     parts.put(partition, log);
@@ -177,16 +177,12 @@ public class LogManager implements PartitionChooser, Closeable {
         /* Schedule the cleanup task to delete old logs */
         if (this.scheduler != null) {
             logger.debug("starting log cleaner every " + logCleanupIntervalMs + " ms");
-            this.scheduler.scheduleWithRate(new Runnable() {
-
-                public void run() {
-                    try {
-                        cleanupLogs();
-                    } catch (IOException e) {
-                        logger.error("cleanup log failed.", e);
-                    }
+            this.scheduler.scheduleWithRate(() -> {
+                try {
+                    cleanupLogs();
+                } catch (IOException e) {
+                    logger.error("cleanup log failed.", e);
                 }
-
             }, 60 * 1000, logCleanupIntervalMs);
         }
         //
@@ -200,7 +196,7 @@ public class LogManager implements PartitionChooser, Closeable {
         }
     }
 
-    private void registeredTaskLooply() {
+    private void registeredTaskLoop() {
         while (!stopTopicRegisterTasks) {
             try {
                 TopicTask task = topicRegisterTasks.take();
@@ -217,12 +213,12 @@ public class LogManager implements PartitionChooser, Closeable {
 
         @Override
         public void run() {
-            registeredTaskLooply();
+            registeredTaskLoop();
         }
     }
 
     private Map<String, Long> getLogRetentionMSMap(Map<String, Integer> logRetentionHourMap) {
-        Map<String, Long> ret = new HashMap<String, Long>();
+        Map<String, Long> ret = new HashMap<>();
         for (Map.Entry<String, Integer> e : logRetentionHourMap.entrySet()) {
             ret.put(e.getKey(), e.getValue() * 60 * 60 * 1000L);
         }
@@ -293,13 +289,10 @@ public class LogManager implements PartitionChooser, Closeable {
         if (logCleanupThresholdMS == null) {
             logCleanupThresholdMS = this.logCleanupDefaultAgeMs;
         }
-        final long expiredThrshold = logCleanupThresholdMS.longValue();
-        List<LogSegment> toBeDeleted = log.markDeletedWhile(new LogSegmentFilter() {
-
-            public boolean filter(LogSegment segment) {
-                //check file which has not been modified in expiredThrshold millionseconds
-                return startMs - segment.getFile().lastModified() > expiredThrshold;
-            }
+        final long expiredThreshold = logCleanupThresholdMS;
+        List<LogSegment> toBeDeleted = log.markDeletedWhile(segment -> {
+            //check file which has not been modified in expiredThreshold milliseconds
+            return startMs - segment.getFile().lastModified() > expiredThreshold;
         });
         return deleteSegments(log, toBeDeleted);
     }
@@ -342,12 +335,8 @@ public class LogManager implements PartitionChooser, Closeable {
             startupLatch.countDown();
         }
         logger.debug("Starting log flusher every {} ms with the following overrides {}", config.getFlushSchedulerThreadRate(), logFlushIntervalMap);
-        logFlusherScheduler.scheduleWithRate(new Runnable() {
-
-            public void run() {
-                flushAllLogs(false);
-            }
-        }, config.getFlushSchedulerThreadRate(), config.getFlushSchedulerThreadRate());
+        logFlusherScheduler.scheduleWithRate(() -> flushAllLogs(false),
+                config.getFlushSchedulerThreadRate(), config.getFlushSchedulerThreadRate());
     }
 
     /**
@@ -368,7 +357,7 @@ public class LogManager implements PartitionChooser, Closeable {
                         logFlushInterval = config.getDefaultFlushIntervalMs();
                     }
                     final String flushLogFormat = "[%s] flush interval %d, last flushed %d, need flush? %s";
-                    needFlush = timeSinceLastFlush >= logFlushInterval.intValue();
+                    needFlush = timeSinceLastFlush >= logFlushInterval;
                     logger.trace(String.format(flushLogFormat, log.getTopicName(), logFlushInterval,
                             log.getLastFlushedTime(), needFlush));
                 }
@@ -390,7 +379,7 @@ public class LogManager implements PartitionChooser, Closeable {
     }
 
     private Iterator<Log> getLogIterator() {
-        return new IteratorTemplate<Log>() {
+        return new IteratorTemplate<>() {
 
             final Iterator<Pool<Integer, Log>> iterator = logs.values().iterator();
 
@@ -431,9 +420,9 @@ public class LogManager implements PartitionChooser, Closeable {
         if (definePartition == null) {
             definePartition = numPartitions;
         }
-        if (partition < 0 || partition >= definePartition.intValue()) {
+        if (partition < 0 || partition >= definePartition) {
             String msg = "Wrong partition [%d] for topic [%s], valid partitions [0,%d)";
-            msg = format(msg, partition, topic, definePartition.intValue() - 1);
+            msg = format(msg, partition, topic, definePartition - 1);
             logger.warn(msg);
             throw new InvalidPartitionException(msg);
         }
@@ -469,7 +458,7 @@ public class LogManager implements PartitionChooser, Closeable {
         boolean hasNewTopic = false;
         Pool<Integer, Log> parts = getLogPool(topic, partition);
         if (parts == null) {
-            Pool<Integer, Log> found = logs.putIfNotExists(topic, new Pool<Integer, Log>());
+            Pool<Integer, Log> found = logs.putIfNotExists(topic, new Pool<>());
             if (found == null) {
                 hasNewTopic = true;
             }
@@ -510,7 +499,7 @@ public class LogManager implements PartitionChooser, Closeable {
         synchronized (logCreationLock) {
             //final int configPartitions = getPartition(topic);
             Pool<Integer, Log> parts = logs.get(topic);
-            if(parts != null && parts.size() >= partitions){
+            if (parts != null && parts.size() >= partitions) {
                 return parts.size();
             }
             topicPartitionsMap.put(topic, partitions);
@@ -531,7 +520,7 @@ public class LogManager implements PartitionChooser, Closeable {
      * This will delete all log files and remove node data from zookeeper
      * </p>
      *
-     * @param topic topic name
+     * @param topic    topic name
      * @param password auth password
      * @return number of deleted partitions or -1 if authentication failed
      */
@@ -543,7 +532,7 @@ public class LogManager implements PartitionChooser, Closeable {
         synchronized (logCreationLock) {
             Pool<Integer, Log> parts = logs.remove(topic);
             if (parts != null) {
-                List<Log> deleteLogs = new ArrayList<Log>(parts.values());
+                List<Log> deleteLogs = new ArrayList<>(parts.values());
                 for (Log log : deleteLogs) {
                     log.delete();
                     value++;
@@ -560,7 +549,7 @@ public class LogManager implements PartitionChooser, Closeable {
         synchronized (logCreationLock) {
             File d = new File(logDir, topic + "-" + partition);
             d.mkdirs();
-            return new Log(d, partition, this.rollingStategy, flushInterval, false, maxMessageSize);
+            return new Log(d, partition, this.rollingStrategy, flushInterval, false, maxMessageSize);
         }
     }
 

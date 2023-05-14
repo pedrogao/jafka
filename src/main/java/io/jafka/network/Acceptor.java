@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,7 +39,7 @@ class Acceptor extends AbstractServerThread {
     private Processor[] processors;
     private int sendBufferSize;
     private int receiveBufferSize;
-    
+
     public Acceptor(int port, Processor[] processors, int sendBufferSize, int receiveBufferSize) {
         super();
         this.port = port;
@@ -60,44 +60,44 @@ class Acceptor extends AbstractServerThread {
             throw new RuntimeException(e);
         }
         //
-        logger.debug("Awaiting connection on port "+port);
+        logger.debug("Awaiting connection on port " + port);
         startupComplete();
         //
         int currentProcessor = 0;
-        while(isRunning()) {
+        while (isRunning()) {
             int ready = -1;
             try {
                 ready = getSelector().select(500L);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
-            if(ready<=0)continue;
+            if (ready <= 0) continue;
             Iterator<SelectionKey> iter = getSelector().selectedKeys().iterator();
-            while(iter.hasNext() && isRunning())
+            while (iter.hasNext() && isRunning())
                 try {
                     SelectionKey key = iter.next();
                     iter.remove();
                     //
-                    if(key.isAcceptable()) {
-                        accept(key,processors[currentProcessor]);
-                    }else {
+                    if (key.isAcceptable()) {
+                        accept(key, processors[currentProcessor]);
+                    } else {
                         throw new IllegalStateException("Unrecognized key state for acceptor thread.");
                     }
                     //
                     currentProcessor = (currentProcessor + 1) % processors.length;
                 } catch (Throwable t) {
-                    logger.error("Error in acceptor",t);
+                    logger.error("Error in acceptor", t);
                 }
-            }
+        }
         //run over
         logger.info("Closing server socket and selector.");
         Closer.closeQuietly(serverChannel, logger);
         Closer.closeQuietly(getSelector(), logger);
         shutdownComplete();
-        }
+    }
 
-   
-    private void accept(SelectionKey key, Processor processor) throws IOException{
+
+    private void accept(SelectionKey key, Processor processor) throws IOException {
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
         serverSocketChannel.socket().setReceiveBufferSize(receiveBufferSize);
         //

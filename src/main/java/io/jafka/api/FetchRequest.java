@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,7 @@ import io.jafka.utils.Utils;
 
 /**
  * fetching data from server
- * 
+ *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.0
  */
@@ -57,9 +57,10 @@ public class FetchRequest implements Request {
     public FetchRequest(String topic, int partition, long offset) {
         this(topic, partition, offset, 64 * 1024);//64KB
     }
+
     /**
      * create a fetch request
-     * 
+     *
      * @param topic the topic with messages
      * @param partition the partition of log file
      * @param offset offset of the topic(log file)
@@ -97,7 +98,7 @@ public class FetchRequest implements Request {
 
     /**
      * Read a fetch request from buffer(socket data)
-     * 
+     *
      * @param buffer the buffer data
      * @return a fetch request
      * @throws IllegalArgumentException while error data format(no topic)

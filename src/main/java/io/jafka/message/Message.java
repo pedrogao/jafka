@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,10 +27,10 @@ import io.jafka.utils.Utils;
 
 /**
  * * A message. The format of an N byte message is the following:
- * 
+ *
  * <p>
  * magic byte is 1
- * 
+ *
  * <pre>
  * 1. 1 byte "magic" identifier to allow format changes
  * 2. 1 byte "attributes" identifier to allow annotations on the message
@@ -39,7 +39,7 @@ import io.jafka.utils.Utils;
  * 4. N - 6 byte payload
  * </pre>
  *
- * 
+ *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.0
  */
@@ -55,7 +55,7 @@ public class Message implements ICalculable {
 
     public static final byte ATTRIBUTE_OFFSET = MAGIC_OFFSET + MAGIC_LENGTH;
 
-    public static final byte ATTRIBUT_ELENGTH = 1;
+    public static final byte ATTRIBUTE_LENGTH = 1;
 
     /**
      * Specifies the mask for the compression code. 2 bits to hold the
@@ -67,7 +67,7 @@ public class Message implements ICalculable {
 
     /**
      * Computes the CRC value based on the magic byte
-     * 
+     *
      * @param magic Specifies the magic byte value. Possible values are 1
      *        (compression)
      * @return crc value
@@ -75,7 +75,7 @@ public class Message implements ICalculable {
     public static int crcOffset(byte magic) {
         switch (magic) {
             case MAGIC_VERSION2:
-                return ATTRIBUTE_OFFSET + ATTRIBUT_ELENGTH;
+                return ATTRIBUTE_OFFSET + ATTRIBUTE_LENGTH;
 
         }
         throw new UnknownMagicByteException(format("Magic byte value of %d is unknown", magic));
@@ -85,7 +85,7 @@ public class Message implements ICalculable {
 
     /**
      * Computes the offset to the message payload based on the magic byte
-     * 
+     *
      * @param magic Specifies the magic byte value. Possible values are 0
      *        and 1 0 for no compression 1 for compression
      * @return offset data
@@ -96,7 +96,7 @@ public class Message implements ICalculable {
 
     /**
      * Computes the size of the message header based on the magic byte
-     * 
+     *
      * @param magic Specifies the magic byte value. Possible values are 0
      *        and 1 0 for no compression 1 for compression
      * @return size of header
@@ -143,7 +143,7 @@ public class Message implements ICalculable {
 
     /**
      * create no compression message
-     * 
+     *
      * @param bytes message data
      * @see CompressionCodec#NoCompressionCodec
      */
@@ -158,7 +158,7 @@ public class Message implements ICalculable {
 
     /**
      * magic code ( constant 1)
-     * 
+     *
      * @return 1
      */
     public byte magic() {
@@ -206,7 +206,7 @@ public class Message implements ICalculable {
     }
 
     public int serializedSize() {
-        return 4 /* int size */+ buffer.limit();
+        return 4 /* int size */ + buffer.limit();
     }
 
     public void serializeTo(ByteBuffer serBuffer) {

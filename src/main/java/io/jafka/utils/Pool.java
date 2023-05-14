@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -55,9 +55,10 @@ public class Pool<K extends Comparable<K>, V> implements Map<K, V> {
         return pool.put(key, value);
     }
 
-    public V putIfNotExists(K key,V value) {
+    public V putIfNotExists(K key, V value) {
         return pool.putIfAbsent(key, value);
     }
+
     public V remove(Object key) {
         return pool.remove(key);
     }
@@ -82,7 +83,7 @@ public class Pool<K extends Comparable<K>, V> implements Map<K, V> {
     public Set<java.util.Map.Entry<K, V>> entrySet() {
         return pool.entrySet();
     }
-    
+
     @Override
     public String toString() {
         return pool.toString();

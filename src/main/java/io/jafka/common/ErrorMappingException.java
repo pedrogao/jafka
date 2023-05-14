@@ -41,6 +41,6 @@ public class ErrorMappingException extends RuntimeException {
     }
 
     public ErrorMapping getErrorMapping() {
-        return ErrorMapping.UnkonwCode;
+        return ErrorMapping.UnknownCode;
     }
 }

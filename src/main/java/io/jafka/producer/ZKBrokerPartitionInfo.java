@@ -254,7 +254,7 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
                 final Integer newBrokerId = Integer.valueOf(newBroker);
                 final Broker broker = Broker.createBroker(newBrokerId.intValue(),brokerInfo);
                 allBrokers.put(newBrokerId, broker);
-                callback.producerCbk(broker.id, broker.host, broker.port,broker.autocreated);
+                callback.producerCbk(broker.id, broker.host, broker.port,broker.autoCreated);
             }
             //
             //remove all dead broker and remove all broker-partition from topic list

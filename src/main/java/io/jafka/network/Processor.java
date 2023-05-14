@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,18 +58,18 @@ public class Processor extends AbstractServerThread {
     /**
      * creaet a new thread processor
      *
-     * @param requesthandlerFactory request handler factory
+     * @param requestHandlerFactory request handler factory
      * @param stats                 jmx state statics
      * @param maxRequestSize        max request package size
      * @param maxCacheConnections   max cache connections for self-protected
      */
-    public Processor(RequestHandlerFactory requesthandlerFactory, //
+    public Processor(RequestHandlerFactory requestHandlerFactory, //
                      SocketServerStats stats, int maxRequestSize,//
                      int maxCacheConnections) {
-        this.requesthandlerFactory = requesthandlerFactory;
+        this.requesthandlerFactory = requestHandlerFactory;
         this.stats = stats;
         this.maxRequestSize = maxRequestSize;
-        this.newConnections = new ArrayBlockingQueue<SocketChannel>(maxCacheConnections);
+        this.newConnections = new ArrayBlockingQueue<>(maxCacheConnections);
     }
 
     public void run() {

@@ -33,22 +33,14 @@ public class StringConsumers implements Closeable {
         //
         executor = Executors.newFixedThreadPool(threads);
         for (final MessageStream<String> stream : streams) {
-            executor.submit(new Runnable() {
-
-                public void run() {
-                    for (String message : stream) {
-                        listener.onMessage(message);
-                    }
+            executor.submit(() -> {
+                for (String message : stream) {
+                    listener.onMessage(message);
                 }
             });
         }
         //
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                StringConsumers.this.close();
-            }
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(StringConsumers.this::close));
     }
 
 

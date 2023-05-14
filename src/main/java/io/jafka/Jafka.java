@@ -47,7 +47,7 @@ public class Jafka implements Closeable {
     public void start(String mainFileName, String consumerFile, String producerFile) {
         File mainFile = Utils.getCanonicalFile(new File(mainFileName));
         if (!mainFile.isFile() || !mainFile.exists()) {
-            System.err.println(String.format("ERROR: Main config file not exist => '%s', copy one from 'conf/server.properties.sample' first.", mainFile.getAbsolutePath()));
+            System.err.printf("ERROR: Main config file not exist => '%s', copy one from 'conf/server.properties.sample' first.%n", mainFile.getAbsolutePath());
             System.exit(2);
         }
         start(Utils.loadProps(mainFileName),//
@@ -92,7 +92,7 @@ public class Jafka implements Closeable {
             } catch (IllegalStateException ex) {
                 //ignore shutting down status
             }
-            shutdownHook.run();
+            shutdownHook.start();
             shutdownHook = null;
         }
     }

@@ -33,15 +33,16 @@ import java.io.IOException;
  * An HTTP server that sends back the content of the received HTTP request
  * in a pretty plaintext form.
  */
-public class HttpServer extends Thread implements Closeable{
+public class HttpServer extends Thread implements Closeable {
 
     private final int port;
     final EventLoopGroup bossGroup = new NioEventLoopGroup();
     final EventLoopGroup workerGroup = new NioEventLoopGroup(10);
     final HttpRequestHandler handler;
     final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass());
+
     //
-    public HttpServer(int port,HttpRequestHandler handler) {
+    public HttpServer(int port, HttpRequestHandler handler) {
         super("jafka-httpserver");
         this.port = port;
         this.handler = handler;
@@ -60,13 +61,12 @@ public class HttpServer extends Thread implements Closeable{
 
             Channel ch = b.bind(port).sync().channel();
             //System.err.println("Open your web browser and navigate to " + "http://127.0.0.1:" + port + '/');
-           logger.info("Jafka HttpServer start at port {}",port);
+            logger.info("Jafka HttpServer start at port {}", port);
             ch.closeFuture().sync();
-        } catch (InterruptedException ie){
+        } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(ie.getMessage(),ie);
-        }
-        finally {
+            throw new RuntimeException(ie.getMessage(), ie);
+        } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
@@ -75,7 +75,7 @@ public class HttpServer extends Thread implements Closeable{
 
     @Override
     public void close() throws IOException {
-        logger.info("Jafka HttpServer stop port {}",port);
+        logger.info("Jafka HttpServer stop port {}", port);
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
     }
@@ -90,7 +90,7 @@ public class HttpServer extends Thread implements Closeable{
             port = 9093;
         }
         System.out.println("start server");
-        new HttpServer(port,null).run();
+        new HttpServer(port, null).start();
         System.out.println("server stop");
     }
 }

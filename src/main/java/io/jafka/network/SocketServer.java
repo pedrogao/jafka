@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,7 +50,7 @@ public class SocketServer implements Closeable {
     private final ServerConfig serverConfig;
 
     public SocketServer(RequestHandlerFactory handlerFactory, //
-            ServerConfig serverConfig) {
+                        ServerConfig serverConfig) {
         super();
         this.serverConfig = serverConfig;
         this.handlerFactory = handlerFactory;
@@ -75,12 +75,12 @@ public class SocketServer implements Closeable {
 
     /**
      * Start the socket server and waiting for finished
-     * 
+     *
      * @throws InterruptedException thread interrupted
      */
     public void startup() throws InterruptedException {
         final int maxCacheConnectionPerThread = serverConfig.getMaxConnections() / processors.length;
-        logger.debug("start {} Processor threads",processors.length);
+        logger.debug("start {} Processor threads", processors.length);
         for (int i = 0; i < processors.length; i++) {
             processors[i] = new Processor(handlerFactory, stats, maxRequestSize, maxCacheConnectionPerThread);
             Utils.newThread("jafka-processor-" + i, processors[i], false).start();

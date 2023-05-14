@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,11 +59,11 @@ public class EmbeddedConsumer implements TopicEventHandler<String> {
 
     private ConsumerConnector consumerConnector;
 
-    private List<MirroringThread> threadList = new ArrayList<MirroringThread>();
+    private List<MirroringThread> threadList = new ArrayList<>();
 
     private static final Logger logger = LoggerFactory.getLogger(EmbeddedConsumer.class);
 
-    private List<String> mirrorTopics = new ArrayList<String>();
+    private List<String> mirrorTopics = new ArrayList<>();
 
     /**
      * @param consumerConfig  the inner consumer config
@@ -76,7 +76,7 @@ public class EmbeddedConsumer implements TopicEventHandler<String> {
         //
         this.whiteListTopics = Arrays.asList(consumerConfig.getMirrorTopicsWhitelist().split(","));
         this.blackListTopics = Arrays.asList(consumerConfig.getMirrorTopicsBlackList().split(","));
-        this.producer = new Producer<Void, Message>(producerConfig);
+        this.producer = new Producer<>(producerConfig);
     }
 
     /**
@@ -104,10 +104,10 @@ public class EmbeddedConsumer implements TopicEventHandler<String> {
     }
 
     public void handleTopicEvent(List<String> allTopics) {
-        List<String> newMirrorTopics = new ArrayList<String>();
-        List<String> addedTopics = new ArrayList<String>();
-        List<String> deletedTopics = new ArrayList<String>();
-        final Map<String, Integer> topicCountMap = new LinkedHashMap<String, Integer>();
+        List<String> newMirrorTopics = new ArrayList<>();
+        List<String> addedTopics = new ArrayList<>();
+        List<String> deletedTopics = new ArrayList<>();
+        final Map<String, Integer> topicCountMap = new LinkedHashMap<>();
         for (String topic : allTopics) {
             boolean newTopic = false;
             if (whiteListTopics.isEmpty()) {

@@ -43,7 +43,7 @@ public class MultiFetchHandler extends FetchHandler {
 
     public Send handler(RequestKeys requestType, Receive request) {
         MultiFetchRequest multiFetchRequest = MultiFetchRequest.readFrom(request.buffer());
-        List<FetchRequest> fetches = multiFetchRequest.getFetches();
+        List<FetchRequest> fetches = multiFetchRequest.fetches();
         if (logger.isDebugEnabled()) {
             logger.debug("Multifetch request objects size: " + fetches.size());
             for (FetchRequest fetch : fetches) {

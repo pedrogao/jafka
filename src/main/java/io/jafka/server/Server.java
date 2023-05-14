@@ -78,7 +78,7 @@ public class Server implements Closeable {
             logger.info("Starting Jafka server {} (brokerid={})", serverInfo.getVersion(), this.config.getBrokerId());
             Utils.registerMBean(serverInfo);
             boolean needRecovery = true;
-            File cleanShutDownFile = new File(new File(config.getLogDir()), CLEAN_SHUTDOWN_FILE);
+            File cleanShutDownFile = new File(new File(config.getLogDir()), CLEAN_SHUTDOWN_FILE); //check recover or not
             if (cleanShutDownFile.exists()) {
                 needRecovery = false;
                 cleanShutDownFile.delete();
@@ -88,7 +88,7 @@ public class Server implements Closeable {
                     1000L * 60 * config.getLogCleanupIntervalMinutes(),//
                     1000L * 60 * 60 * config.getLogRetentionHours(),//
                     needRecovery);
-            this.logManager.setRollingStategy(config.getRollingStrategy());
+            this.logManager.setRollingStrategy(config.getRollingStrategy());
             logManager.load();
 
             RequestHandlers handlers = new RequestHandlers(logManager);

@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,14 +23,14 @@ import io.jafka.message.InvalidMessageException;
 
 
 /**
- * A bi-directional mapping between error codes and exceptions x
- * 
+ * A bidirectional mapping between error codes and exceptions x
+ *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.0
  */
 public enum ErrorMapping {
 
-    UnkonwCode(-1), //
+    UnknownCode(-1), //
     NoError(0), //
     OffsetOutOfRangeCode(1), //
     InvalidMessageCode(2), //
@@ -59,7 +59,7 @@ public enum ErrorMapping {
         if (clazz == InvalidMessageSizeException.class) {
             return InvalidFetchSizeCode;
         }
-        return UnkonwCode;
+        return UnknownCode;
     }
 
     public static ErrorMapping valueOf(short code) {
@@ -75,7 +75,7 @@ public enum ErrorMapping {
             case 4:
                 return InvalidFetchSizeCode;
             default:
-                return UnkonwCode;
+                return UnknownCode;
         }
     }
 }

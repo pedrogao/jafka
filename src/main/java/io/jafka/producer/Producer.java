@@ -103,7 +103,7 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
         if (this.populateProducerPool) {
             for (Map.Entry<Integer, Broker> e : this.brokerPartitionInfo.getAllBrokerInfo().entrySet()) {
                 Broker b = e.getValue();
-                producerPool.addProducer(new Broker(e.getKey(), b.host, b.host, b.port,b.autocreated));
+                producerPool.addProducer(new Broker(e.getKey(), b.host, b.host, b.port,b.autoCreated));
             }
         }
     }

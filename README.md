@@ -1,4 +1,4 @@
-#A fast distributed messaging system (MQ)
+# A fast distributed messaging system (MQ)
 
 [![License](https://img.shields.io/github/license/adyliu/jafka.svg)](https://github.com/adyliu/jafka/blob/master/LICENSE)
 [![Build Status](https://travis-ci.org/adyliu/jafka.png?branch=master)](https://travis-ci.org/adyliu/jafka)
@@ -15,6 +15,12 @@ So it has the following features:
 * Pure Java work
 
 If you are interested in [scala](http://www.scala-lang.org/), please use the origin kafka at [apache](http://kafka.apache.org/). Also it has a git repository at [github](https://github.com/apache/kafka/).
+
+## Architecture
+
+![img.png](img.png)
+
+![img_1.png](img_1.png)
 
 ## News
 
@@ -39,16 +45,19 @@ You can download the full package from Google Drive:
 
 Maven
 
+```
     <dependency>
         <groupId>io.jafka</groupId>
         <artifactId>jafka</artifactId>
         <version>3.0.6</version>
     </dependency>
+```
 
 Gradle
 
+```
     'io.jafka:jafka:3.0.6'
-
+```
 
 ## Contributor
 

@@ -26,26 +26,28 @@ public class HttpRequestHandler {
     final String errorFormat = "Error processing %s on %s:%d";
 
     final LogManager logManager;
-    public HttpRequestHandler(LogManager logManager){
+
+    public HttpRequestHandler(LogManager logManager) {
         this.logManager = logManager;
     }
-    public void handle(Map<String,String> args,byte[] data){
+
+    public void handle(Map<String, String> args, byte[] data) {
         RequestKeys requestKey = RequestKeys.valueOf(args.get("key"));
-        ByteBufferMessageSet messageSet = new ByteBufferMessageSet(CompressionCodec.NoCompressionCodec,new Message(data));
+        ByteBufferMessageSet messageSet = new ByteBufferMessageSet(CompressionCodec.NoCompressionCodec, new Message(data));
         final String topic = args.get("topic");
         final int partition = Utils.getIntInRange(args, "partition", 0, 0, 1024);
-        switch (requestKey){
+        switch (requestKey) {
             case PRODUCE:
-                produce(topic,partition,messageSet);
+                produce(topic, partition, messageSet);
                 break;
             default:
                 break;
         }
     }
 
-    private void produce(String topic,int partition, ByteBufferMessageSet messageSet) {
+    private void produce(String topic, int partition, ByteBufferMessageSet messageSet) {
         final long st = System.currentTimeMillis();
-        ProducerRequest request = new ProducerRequest(topic,partition,messageSet);
+        ProducerRequest request = new ProducerRequest(topic, partition, messageSet);
         if (logger.isDebugEnabled()) {
             logger.debug("Producer request " + request.toString());
         }

@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * the log segments(all readable messages and the last writeable file)
- * 
+ *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.0
  */
@@ -35,23 +35,24 @@ public class SegmentList {
 
     /**
      * create the messages segments
-     * 
-     * @param name the message topic name
+     *
+     * @param name     the message topic name
      * @param segments exist segments
      */
     public SegmentList(final String name, List<LogSegment> segments) {
         this.name = name;
-        contents = new AtomicReference<List<LogSegment>>(segments);
+        contents = new AtomicReference<>(segments);
     }
 
     /**
      * Append the given item to the end of the list
+     *
      * @param segment segment to append
      */
     public void append(LogSegment segment) {
         while (true) {
             List<LogSegment> curr = contents.get();
-            List<LogSegment> updated = new ArrayList<LogSegment>(curr);
+            List<LogSegment> updated = new ArrayList<>(curr);
             updated.add(segment);
             if (contents.compareAndSet(curr, updated)) {
                 return;
@@ -61,7 +62,7 @@ public class SegmentList {
 
     /**
      * Delete the first n items from the list
-     * 
+     *
      * @param newStart the logsegment who's index smaller than newStart will be deleted.
      * @return the deleted segment
      */
@@ -72,8 +73,7 @@ public class SegmentList {
         while (true) {
             List<LogSegment> curr = contents.get();
             int newLength = Math.max(curr.size() - newStart, 0);
-            List<LogSegment> updatedList = new ArrayList<LogSegment>(curr.subList(Math.min(newStart, curr.size() - 1),
-                    curr.size()));
+            List<LogSegment> updatedList = new ArrayList<>(curr.subList(Math.min(newStart, curr.size() - 1), curr.size()));
             if (contents.compareAndSet(curr, updatedList)) {
                 return curr.subList(0, curr.size() - newLength);
             }
@@ -82,7 +82,7 @@ public class SegmentList {
 
     /**
      * get the last segment at the moment
-     * 
+     *
      * @return the last segment
      */
     public LogSegment getLastView() {
@@ -92,7 +92,7 @@ public class SegmentList {
 
     /**
      * get all segments at the moment
-     * 
+     *
      * @return all segments
      */
     public List<LogSegment> getView() {

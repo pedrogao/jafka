@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,17 +25,11 @@ import io.jafka.network.Request;
 
 /**
  * Multi fetch request
- * 
+ *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.0
  */
-public class MultiFetchRequest implements Request {
-
-    public final List<FetchRequest> fetches;
-
-    public MultiFetchRequest(List<FetchRequest> fetches) {
-        this.fetches = fetches;
-    }
+public record MultiFetchRequest(List<FetchRequest> fetches) implements Request {
 
     public RequestKeys getRequestKey() {
         return RequestKeys.MULTIFETCH;
@@ -44,7 +38,8 @@ public class MultiFetchRequest implements Request {
     /**
      * @return the fetches
      */
-    public List<FetchRequest> getFetches() {
+    @Override
+    public List<FetchRequest> fetches() {
         return fetches;
     }
 
@@ -57,7 +52,7 @@ public class MultiFetchRequest implements Request {
     }
 
     public void writeTo(ByteBuffer buffer) {
-        if (fetches.size() > Short.MAX_VALUE) {//max 32767
+        if (fetches.size() > Short.MAX_VALUE) { //max 32767
             throw new IllegalArgumentException("Number of requests in MultiFetchRequest exceeds " + Short.MAX_VALUE + ".");
         }
         buffer.putShort((short) fetches.size());
@@ -68,7 +63,7 @@ public class MultiFetchRequest implements Request {
 
     public static MultiFetchRequest readFrom(ByteBuffer buffer) {
         int count = buffer.getShort();
-        List<FetchRequest> fetches = new ArrayList<FetchRequest>(count);
+        List<FetchRequest> fetches = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             fetches.add(FetchRequest.readFrom(buffer));
         }

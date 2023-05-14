@@ -23,9 +23,11 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     final HttpServer server;
-    public HttpServerInitializer(HttpServer server){
+
+    public HttpServerInitializer(HttpServer server) {
         this.server = server;
     }
+
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();

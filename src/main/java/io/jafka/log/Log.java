@@ -20,7 +20,6 @@ package io.jafka.log;
 import static java.lang.String.format;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.NumberFormat;
@@ -64,7 +63,7 @@ public class Log implements ILog {
 
     public final File dir;
 
-    private final RollingStrategy rollingStategy;
+    private final RollingStrategy rollingStrategy;
 
     final int flushInterval;
 
@@ -73,9 +72,9 @@ public class Log implements ILog {
     ///////////////////////////////////////////////////////////////////////
     private final Object lock = new Object();
 
-    private final AtomicInteger unflushed = new AtomicInteger(0);
+    private final AtomicInteger unFlushed = new AtomicInteger(0);
 
-    private final AtomicLong lastflushedTime = new AtomicLong(System.currentTimeMillis());
+    private final AtomicLong lastFlushedTime = new AtomicLong(System.currentTimeMillis());
 
     public final String name;
 
@@ -87,15 +86,15 @@ public class Log implements ILog {
     private final int maxMessageSize;
 
     public Log(File dir, //
-            int partition,//
-            RollingStrategy rollingStategy,//
-            int flushInterval, //
-            boolean needRecovery,//
-            int maxMessageSize) throws IOException {
+               int partition,//
+               RollingStrategy rollingStrategy,//
+               int flushInterval, //
+               boolean needRecovery,//
+               int maxMessageSize) throws IOException {
         super();
         this.dir = dir;
         this.partition = partition;
-        this.rollingStategy = rollingStategy;
+        this.rollingStrategy = rollingStrategy;
         this.flushInterval = flushInterval;
         this.needRecovery = needRecovery;
         this.maxMessageSize = maxMessageSize;
@@ -106,13 +105,8 @@ public class Log implements ILog {
     }
 
     private SegmentList loadSegments() throws IOException {
-        List<LogSegment> accum = new ArrayList<LogSegment>();
-        File[] ls = dir.listFiles(new FileFilter() {
-
-            public boolean accept(File f) {
-                return f.isFile() && f.getName().endsWith(FileSuffix);
-            }
-        });
+        List<LogSegment> accum = new ArrayList<>();
+        File[] ls = dir.listFiles(f -> f.isFile() && f.getName().endsWith(FileSuffix));
         logger.info("loadSegments files from [" + dir.getAbsolutePath() + "]: " + ls.length);
         int n = 0;
         for (File f : ls) {
@@ -227,7 +221,7 @@ public class Log implements ILog {
         BrokerTopicStat.getBrokerAllTopicStat().recordMessagesIn(numberOfMessages);
         logStats.recordAppendedMessages(numberOfMessages);
 
-        // truncate the message set's buffer upto validbytes, before appending it to the on-disk log
+        // truncate the message set's buffer upto valid bytes, before appending it to the on-disk log
         ByteBuffer validByteBuffer = messages.getBuffer().duplicate();
         long messageSetValidBytes = messages.getValidBytes();
         if (messageSetValidBytes > Integer.MAX_VALUE || messageSetValidBytes < 0) throw new InvalidMessageSizeException(
@@ -255,7 +249,7 @@ public class Log implements ILog {
                 throw re;
             }
         }
-        return (List<Long>) null;
+        return null;
     }
 
     /**
@@ -265,7 +259,7 @@ public class Log implements ILog {
      * @throws IOException any file operation exception
      */
     private void maybeRoll(LogSegment lastSegment) throws IOException {
-        if (rollingStategy.check(lastSegment)) {
+        if (rollingStrategy.check(lastSegment)) {
             roll();
         }
     }
@@ -295,7 +289,7 @@ public class Log implements ILog {
     }
 
     private void maybeFlush(int numberOfMessages) throws IOException {
-        if (unflushed.addAndGet(numberOfMessages) >= flushInterval) {
+        if (unFlushed.addAndGet(numberOfMessages) >= flushInterval) {
             flush();
         }
     }
@@ -306,7 +300,7 @@ public class Log implements ILog {
      * @throws IOException file read error
      */
     public void flush() throws IOException {
-        if (unflushed.get() == 0) return;
+        if (unFlushed.get() == 0) return;
 
         synchronized (lock) {
             if (logger.isTraceEnabled()) {
@@ -314,8 +308,8 @@ public class Log implements ILog {
                         .currentTimeMillis());
             }
             segments.getLastView().getMessageSet().flush();
-            unflushed.set(0);
-            lastflushedTime.set(System.currentTimeMillis());
+            unFlushed.set(0);
+            lastFlushedTime.set(System.currentTimeMillis());
         }
     }
 
@@ -383,7 +377,7 @@ public class Log implements ILog {
     }
 
     public long getLastFlushedTime() {
-        return lastflushedTime.get();
+        return lastFlushedTime.get();
     }
 
     /**
@@ -415,7 +409,7 @@ public class Log implements ILog {
     List<LogSegment> markDeletedWhile(LogSegmentFilter filter) throws IOException {
         synchronized (lock) {
             List<LogSegment> view = segments.getView();
-            List<LogSegment> deletable = new ArrayList<LogSegment>();
+            List<LogSegment> deletable = new ArrayList<>();
             for (LogSegment seg : view) {
                 if (filter.filter(seg)) {
                     deletable.add(seg);
@@ -431,7 +425,7 @@ public class Log implements ILog {
                 if (view.get(numToDelete - 1).size() > 0) {
                     roll();
                 } else {
-                    // If the last segment to be deleted is empty and we roll the log, the new segment will have the same
+                    // If the last segment to be deleted is empty, and we roll the log, the new segment will have the same
                     // file name. So simply reuse the last segment and reset the modified time.
                     view.get(numToDelete - 1).getFile().setLastModified(System.currentTimeMillis());
                     numToDelete -= 1;
@@ -443,15 +437,15 @@ public class Log implements ILog {
 
     public List<Long> getOffsetsBefore(OffsetRequest offsetRequest) {
         List<LogSegment> logSegments = segments.getView();
-        final LogSegment lastLogSegent = segments.getLastView();
-        final boolean lastSegmentNotEmpty = lastLogSegent.size() > 0;
-        List<KV<Long, Long>> offsetTimes = new ArrayList<KV<Long, Long>>();
+        final LogSegment lastLogSegment = segments.getLastView();
+        final boolean lastSegmentNotEmpty = lastLogSegment.size() > 0;
+        List<KV<Long, Long>> offsetTimes = new ArrayList<>();
         for (LogSegment ls : logSegments) {
-            offsetTimes.add(new KV<Long, Long>(//
+            offsetTimes.add(new KV<>(//
                     ls.start(), ls.getFile().lastModified()));
         }
         if (lastSegmentNotEmpty) {
-            offsetTimes.add(new KV<Long, Long>(lastLogSegent.start() + lastLogSegent.getMessageSet().highWaterMark(),
+            offsetTimes.add(new KV<>(lastLogSegment.start() + lastLogSegment.getMessageSet().highWaterMark(),
                     System.currentTimeMillis()));
         }
         int startIndex = -1;
@@ -470,7 +464,7 @@ public class Log implements ILog {
             }
         }
         final int retSize = Math.min(offsetRequest.maxNumOffsets, startIndex + 1);
-        final List<Long> ret = new ArrayList<Long>(retSize);
+        final List<Long> ret = new ArrayList<>(retSize);
         for (int j = 0; j < retSize; j++) {
             ret.add(offsetTimes.get(startIndex).k);
             startIndex -= 1;
@@ -480,8 +474,8 @@ public class Log implements ILog {
 
     @Override
     public String toString() {
-        return "Log [dir=" + dir + ", lastflushedTime=" + //
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(lastflushedTime.get())) + "]";
+        return "Log [dir=" + dir + ", lastFlushedTime=" + //
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(lastFlushedTime.get())) + "]";
     }
 
     public long getTotalOffset() {
