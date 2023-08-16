@@ -67,7 +67,7 @@ public class LogStats implements LogStatsMBean, IMBeanName {
 
     @Override
     public long getLastSegmentSize() {
-        return log.getHighwaterMark();
+        return log.getHighWaterMark();
     }
 
     @Override

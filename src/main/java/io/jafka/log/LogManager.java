@@ -60,9 +60,9 @@ public class LogManager implements PartitionChooser, Closeable {
 
     private final Scheduler scheduler;
 
-    final long logCleanupIntervalMs;
+    final long logCleanupIntervalMs; // 日志清理间隔
 
-    final long logCleanupDefaultAgeMs;
+    final long logCleanupDefaultAgeMs; // 默认日志保留时间
 
     final boolean needRecovery;
 
@@ -113,18 +113,22 @@ public class LogManager implements PartitionChooser, Closeable {
                       boolean needRecovery) {
         super();
         this.config = config;
-        this.maxMessageSize = config.getMaxMessageSize();
-        this.scheduler = scheduler;
+        this.maxMessageSize = config.getMaxMessageSize(); // max message size
+        this.scheduler = scheduler; // scheduler to use for cleanup old logs
+
         //        this.time = time;
         this.logCleanupIntervalMs = logCleanupIntervalMs;
         this.logCleanupDefaultAgeMs = logCleanupDefaultAgeMs;
         this.needRecovery = needRecovery;
+
         //
-        this.logDir = Utils.getCanonicalFile(new File(config.getLogDir()));
+        this.logDir = Utils.getCanonicalFile(new File(config.getLogDir())); // log dir
+
         this.numPartitions = config.getNumPartitions();
         this.flushInterval = config.getFlushInterval();
-        this.topicPartitionsMap = config.getTopicPartitionsMap();
+        this.topicPartitionsMap = config.getTopicPartitionsMap(); // topic => partition number
         this.startupLatch = config.getEnableZookeeper() ? new CountDownLatch(1) : null;
+
         this.logFlushIntervalMap = config.getFlushIntervalMap();
         this.logRetentionSize = config.getLogRetentionSize();
         this.logRetentionMSMap = getLogRetentionMSMap(config.getLogRetentionHoursMap());
@@ -146,6 +150,7 @@ public class LogManager implements PartitionChooser, Closeable {
         if (!logDir.isDirectory() || !logDir.canRead()) {
             throw new IllegalArgumentException(logDir.getAbsolutePath() + " is not a readable log directory.");
         }
+
         File[] subDirs = logDir.listFiles();
         if (subDirs != null) {
             for (File dir : subDirs) {
@@ -153,19 +158,21 @@ public class LogManager implements PartitionChooser, Closeable {
                     logger.warn("Skipping unexplainable file '" + dir.getAbsolutePath() + "'--should it be there?");
                 } else {
                     logger.info("Loading log from " + dir.getAbsolutePath());
-                    final String topicNameAndPartition = dir.getName();
+                    final String topicNameAndPartition = dir.getName(); // ${topic}-${partition}
                     if (-1 == topicNameAndPartition.indexOf('-')) {
                         throw new IllegalArgumentException("error topic directory: " + dir.getAbsolutePath());
                     }
+
                     final KV<String, Integer> topicPartition = Utils.getTopicPartition(topicNameAndPartition);
                     final String topic = topicPartition.k;
                     final int partition = topicPartition.v;
+                    // log => topic + partition
                     Log log = new Log(dir, partition, this.rollingStrategy, flushInterval, needRecovery, maxMessageSize);
 
-                    logs.putIfNotExists(topic, new Pool<>());
+                    logs.putIfNotExists(topic, new Pool<>());  // topic => { partition => log }
                     Pool<Integer, Log> parts = logs.get(topic);
 
-                    parts.put(partition, log);
+                    parts.put(partition, log); // partition => log
                     int configPartition = getPartition(topic);
                     if (configPartition <= partition) {
                         topicPartitionsMap.put(topic, partition + 1);
@@ -200,7 +207,7 @@ public class LogManager implements PartitionChooser, Closeable {
         while (!stopTopicRegisterTasks) {
             try {
                 TopicTask task = topicRegisterTasks.take();
-                if (task.type == TopicTask.TaskType.SHUTDOWN) break;
+                if (task.type == TopicTask.TaskType.SHUTDOWN) break; // shutdown
                 serverRegister.processTask(task);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -285,6 +292,7 @@ public class LogManager implements PartitionChooser, Closeable {
     private int cleanupExpiredSegments(Log log) throws IOException {
         final long startMs = System.currentTimeMillis();
         String topic = Utils.getTopicPartition(log.dir.getName()).k;
+
         Long logCleanupThresholdMS = logRetentionMSMap.get(topic);
         if (logCleanupThresholdMS == null) {
             logCleanupThresholdMS = this.logCleanupDefaultAgeMs;

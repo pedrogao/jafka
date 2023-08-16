@@ -72,7 +72,7 @@ public class AsyncProducer<T> implements Closeable {
         this.callbackHandler = callbackHandler;
         this.enqueueTimeoutMs = config.getEnqueueTimeoutMs();
         //
-        this.queue = new LinkedBlockingQueue<QueueItem<T>>(config.getQueueSize());
+        this.queue = new LinkedBlockingQueue<>(config.getQueueSize());
         //
         if (eventHandler != null) {
             eventHandler.init(eventHandlerProperties);
@@ -80,7 +80,7 @@ public class AsyncProducer<T> implements Closeable {
         if (callbackHandler != null) {
             callbackHandler.init(callbackHandlerProperties);
         }
-        this.sendThread = new ProducerSendThread<T>("ProducerSendThread-" + asyncProducerID,
+        this.sendThread = new ProducerSendThread<>("ProducerSendThread-" + asyncProducerID,
                 queue, //
                 serializer,//
                 producer, //
@@ -99,10 +99,10 @@ public class AsyncProducer<T> implements Closeable {
     public AsyncProducer(AsyncProducerConfig config) {
         this(config//
                 , new SyncProducer(config)//
-                , (Encoder<T>) Utils.getObject(config.getSerializerClass())//
-                , (EventHandler<T>) Utils.getObject(config.getEventHandler())//
+                , Utils.getObject(config.getSerializerClass())//
+                , Utils.getObject(config.getEventHandler())//
                 , config.getEventHandlerProperties()//
-                , (CallbackHandler<T>) Utils.getObject(config.getCbkHandler())//
+                , Utils.getObject(config.getCbkHandler())//
                 , config.getCbkHandlerProperties());
     }
 
@@ -119,7 +119,7 @@ public class AsyncProducer<T> implements Closeable {
         if (closed.get()) {
             throw new QueueClosedException("Attempt to add event to a closed queue.");
         }
-        QueueItem<T> data = new QueueItem<T>(event, partition, topic);
+        QueueItem<T> data = new QueueItem<>(event, partition, topic);
         if (this.callbackHandler != null) {
             data = this.callbackHandler.beforeEnqueue(data);
         }

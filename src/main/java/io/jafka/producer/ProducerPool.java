@@ -92,8 +92,8 @@ public class ProducerPool<V> implements Closeable {
             CallbackHandler<V> callbackHandler) {
         this(config,//
                 serializer,//
-                new ConcurrentHashMap<Integer, SyncProducer>(),//
-                new ConcurrentHashMap<Integer, AsyncProducer<V>>(),//
+                new ConcurrentHashMap<>(),//
+                new ConcurrentHashMap<>(),//
                 eventHandler,//
                 callbackHandler);
     }
@@ -102,10 +102,10 @@ public class ProducerPool<V> implements Closeable {
     public ProducerPool(ProducerConfig config, Encoder<V> serializer) {
         this(config,//
                 serializer,//
-                new ConcurrentHashMap<Integer, SyncProducer>(),//
-                new ConcurrentHashMap<Integer, AsyncProducer<V>>(),//
-                (EventHandler<V>) Utils.getObject(config.getEventHandler()),//
-                (CallbackHandler<V>) Utils.getObject(config.getCbkHandler()));
+                new ConcurrentHashMap<>(),//
+                new ConcurrentHashMap<>(),//
+                Utils.getObject(config.getEventHandler()),//
+                Utils.getObject(config.getCbkHandler()));
     }
 
     /**
@@ -124,7 +124,7 @@ public class ProducerPool<V> implements Closeable {
             logger.info("Creating sync producer for broker id = " + broker.id + " at " + broker.host + ":" + broker.port);
             syncProducers.put(broker.id, producer);
         } else {
-            AsyncProducer<V> producer = new AsyncProducer<V>(new AsyncProducerConfig(props),//
+            AsyncProducer<V> producer = new AsyncProducer<>(new AsyncProducerConfig(props),//
                     new SyncProducer(new SyncProducerConfig(props)),//
                     serializer,//
                     eventHandler,//
@@ -193,7 +193,7 @@ public class ProducerPool<V> implements Closeable {
         for (ProducerPoolData<V> ppd : poolData) {
             List<ProducerRequest> messageSets = topicBrokerIdData.get(ppd.partition.brokerId);
             if (messageSets == null) {
-                messageSets = new ArrayList<ProducerRequest>();
+                messageSets = new ArrayList<>();
                 topicBrokerIdData.put(ppd.partition.brokerId, messageSets);
             }
             Message[] messages = new Message[ppd.data.size()];
@@ -246,6 +246,6 @@ public class ProducerPool<V> implements Closeable {
      * @return producer data of builder
      */
     public ProducerPoolData<V> getProducerPoolData(String topic, Partition bidPid, List<V> data) {
-        return new ProducerPoolData<V>(topic, bidPid, data);
+        return new ProducerPoolData<>(topic, bidPid, data);
     }
 }

@@ -57,40 +57,32 @@ public class SimipleConsoleConsumer {
         final long startingOffset = options.valueOf(offsetOpt).longValue();
         //
         final SimpleConsumer consumer = new SimpleConsumer(server.getHost(), server.getPort(), 10000, 64 * 1024);
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> Closer.closeQuietly(consumer)));
+        //
+        Thread thread = new Thread(() -> {
+            long offset = startingOffset;
+            int consumed = 0;
+            while (true) {
+                try {
+                    FetchRequest fetchRequest = new FetchRequest(topic, 0, offset, 1000000);
+                    ByteBufferMessageSet messageSets = consumer.fetch(fetchRequest);
+                    boolean empty = true;
+                    for (MessageAndOffset messageAndOffset : messageSets) {
+                        empty = false;
+                        consumed++;
+                        offset = messageAndOffset.offset;
+                        System.out.println(String.format("[%d] %d: %s", consumed, offset, //
+                                Utils.toString(messageAndOffset.message.payload(), "UTF-8")));
+                    }
+                    if (empty) {
+                        Thread.sleep(1000L);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
-            public void run() {
-                Closer.closeQuietly(consumer);
             }
         });
-        //
-        Thread thread = new Thread() {
-
-            public void run() {
-                long offset = startingOffset;
-                int consumed = 0;
-                while (true) {
-                    try {
-                        FetchRequest fetchRequest = new FetchRequest(topic, 0, offset, 1000000);
-                        ByteBufferMessageSet messageSets = consumer.fetch(fetchRequest);
-                        boolean empty = true;
-                        for (MessageAndOffset messageAndOffset : messageSets) {
-                            empty = false;
-                            consumed++;
-                            offset = messageAndOffset.offset;
-                            System.out.println(String.format("[%d] %d: %s", consumed, offset, //
-                                    Utils.toString(messageAndOffset.message.payload(), "UTF-8")));
-                        }
-                        if (empty) {
-                            Thread.sleep(1000L);
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-
-                }
-            }
-        };
         thread.start();
         thread.join();
     }

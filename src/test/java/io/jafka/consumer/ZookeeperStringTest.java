@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -86,15 +86,14 @@ public class ZookeeperStringTest extends BaseJafkaServer {
         StringProducers ps = StringProducers.buildGlobal(zookeeperConfig);
 
 
-
         //send some message
         final int messageCount = 100;
-        final HashSet<String> messages = new HashSet<String>(messageCount);
+        final HashSet<String> messages = new HashSet<>(messageCount);
         for (int i = 0; i < messageCount; i++) {
             String msg = "message#" + i;
 
-            ps.send(new StringProducerData(topicName,msg));
-            if(i ==0) {
+            ps.send(new StringProducerData(topicName, msg));
+            if (i == 0) {
                 //Thread.sleep(2000L);//waiting broker register this topic
             }
             messages.add(msg);
@@ -110,33 +109,25 @@ public class ZookeeperStringTest extends BaseJafkaServer {
         Assert.assertEquals(messageCount, messages.size());
         //
         final AtomicInteger count = new AtomicInteger(0);
-        StringConsumers sc = StringConsumers.buildConsumer(zookeeperConfig, topicName, "mygroup", new IMessageListener<String>() {
-            @Override
-            public void onMessage(String message) {
-                //System.out.println(count.getAndIncrement()+" -> "+message);
-                //Assert.assertEquals(message,"message#"+count.getAndIncrement());
-                messages.remove(message);
-                count.getAndIncrement();
-            }
+        StringConsumers sc = StringConsumers.buildConsumer(zookeeperConfig, topicName, "mygroup", message -> {
+            //System.out.println(count.getAndIncrement()+" -> "+message);
+            //Assert.assertEquals(message,"message#"+count.getAndIncrement());
+            messages.remove(message);
+            count.getAndIncrement();
         });
-        TestUtil.waitUntil(messageCount, new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                return count.get();
-            }
-        },TimeUnit.SECONDS,10);
+        TestUtil.waitUntil(messageCount, count::get, TimeUnit.SECONDS, 10);
         try {
             Assert.assertEquals(messageCount, count.get());
             if (messages.size() > 0) {
-                for(String m: messages){
-                    logger.error("message=>"+m.length()+":"+m);
+                for (String m : messages) {
+                    logger.error("message=>" + m.length() + ":" + m);
                 }
-                logger.error("what's this? =="+messages+"== size="+messages.size());
+                logger.error("what's this? ==" + messages + "== size=" + messages.size());
             }
             Assert.assertEquals(0, messages.size());
-        }finally {
+        } finally {
             sc.close();
-            for(Jafka jafka: jafkas){
+            for (Jafka jafka : jafkas) {
                 close(jafka);
             }
         }

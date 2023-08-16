@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,20 +41,20 @@ public class TopicCount {
 
     /**
      * @param consumerIdString groupid-consumerid
-     * @param topicCountMap map: topic-&gt;threadCount
+     * @param topicCountMap    map: topic-&gt;threadCount
      */
     public TopicCount(String consumerIdString, Map<String, Integer> topicCountMap) {
         this.consumerIdString = consumerIdString;
         this.topicCountMap = topicCountMap;
     }
+
     /**
-     * 
      * @return topic-&gt;(consumerIdString-0,consumerIdString-1..)
      */
     public Map<String, Set<String>> getConsumerThreadIdsPerTopic() {
-        Map<String, Set<String>> consumerThreadIdsPerTopicMap = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> consumerThreadIdsPerTopicMap = new HashMap<>();
         for (Map.Entry<String, Integer> e : topicCountMap.entrySet()) {
-            Set<String> consumerSet = new HashSet<String>();
+            Set<String> consumerSet = new HashSet<>();
             final int nCounsumers = e.getValue();
             for (int i = 0; i < nCounsumers; i++) {
                 consumerSet.add(consumerIdString + "-" + i);
@@ -87,8 +87,10 @@ public class TopicCount {
         } else if (!topicCountMap.equals(other.topicCountMap)) return false;
         return true;
     }
+
     /**
      * topic-&gt;count map
+     *
      * @return json map
      */
     public String toJsonString() {
@@ -106,7 +108,7 @@ public class TopicCount {
 
     public static TopicCount parse(String consumerIdString, String jsonString) {
         try {
-            Map<String, Integer> topicCountMap = mapper.readValue(jsonString, new TypeReference<Map<String, Integer>>() {});
+            Map<String, Integer> topicCountMap = mapper.readValue(jsonString, new TypeReference<>() {});
             return new TopicCount(consumerIdString, topicCountMap);
         } catch (Exception e) {
             throw new IllegalArgumentException("error parse consumer json string " + jsonString, e);

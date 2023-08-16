@@ -56,7 +56,9 @@ public class SocketServer implements Closeable {
         this.handlerFactory = handlerFactory;
         this.maxRequestSize = serverConfig.getMaxSocketRequestSize();
         this.processors = new Processor[serverConfig.getNumThreads()];
+
         this.stats = new SocketServerStats(1000L * 1000L * 1000L * serverConfig.getMonitoringPeriodSecs());
+
         this.acceptor = new Acceptor(serverConfig.getPort(), //
                 processors, //
                 serverConfig.getSocketSendBuffer(), //

@@ -42,7 +42,7 @@ public class StringProducerData extends ProducerData<String, String> {
     }
 
     public StringProducerData(String topic) {
-        this(topic, new ArrayList<String>());
+        this(topic, new ArrayList<>());
     }
 
     public StringProducerData add(String message) {

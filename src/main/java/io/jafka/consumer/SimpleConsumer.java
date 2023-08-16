@@ -62,7 +62,7 @@ public class SimpleConsumer extends SimpleOperation implements IConsumer {
 
     public MultiFetchResponse multifetch(List<FetchRequest> fetches) throws IOException {
         KV<Receive, ErrorMapping> response = send(new MultiFetchRequest(fetches));
-        List<Long> offsets = new ArrayList<Long>();
+        List<Long> offsets = new ArrayList<>();
         for (FetchRequest fetch : fetches) {
             offsets.add(fetch.offset);
         }

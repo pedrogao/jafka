@@ -18,14 +18,9 @@ public class StringProducers {
 
     private StringProducers(Properties props, boolean autoClosed) {
         ProducerConfig config = new ProducerConfig(props);
-        producer = new Producer<String, String>(config);
+        producer = new Producer<>(config);
         if (autoClosed) {
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    producer.close();
-                }
-            });
+            Runtime.getRuntime().addShutdownHook(new Thread(producer::close));
         }
     }
 
@@ -72,7 +67,7 @@ public class StringProducers {
                     for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
                         String name = (String) e.getKey();
                         if (name.startsWith(JAFKA_PREFIX)) {
-                            props.put(name.substring(JAFKA_PREFIX.length()), (String) e.getValue());
+                            props.put(name.substring(JAFKA_PREFIX.length()), e.getValue());
                         }
                     }
                     instance = new StringProducers(props, true);

@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * a log is message sets with more than one files.
- * 
+ *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.0
  */
@@ -92,16 +92,18 @@ public class Log implements ILog {
                boolean needRecovery,//
                int maxMessageSize) throws IOException {
         super();
-        this.dir = dir;
+        this.dir = dir; // topic => partition
         this.partition = partition;
         this.rollingStrategy = rollingStrategy;
         this.flushInterval = flushInterval;
         this.needRecovery = needRecovery;
         this.maxMessageSize = maxMessageSize;
         this.name = dir.getName();
+
         this.logStats.setMbeanName("jafka:type=jafka.logs." + name);
         Utils.registerMBean(logStats);
-        segments = loadSegments();
+
+        segments = loadSegments(); // load segments from disk
     }
 
     private SegmentList loadSegments() throws IOException {
@@ -112,13 +114,13 @@ public class Log implements ILog {
         for (File f : ls) {
             n++;
             String filename = f.getName();
-            long start = Long.parseLong(filename.substring(0, filename.length() - FileSuffix.length()));
+            long start = Long.parseLong(filename.substring(0, filename.length() - FileSuffix.length())); // parse offset from file name
             final String logFormat = "LOADING_LOG_FILE[%2d], start(offset)=%d, size=%d, path=%s";
             logger.info(String.format(logFormat, n, start, f.length(), f.getAbsolutePath()));
             FileMessageSet messageSet = new FileMessageSet(f, false);
             accum.add(new LogSegment(f, messageSet, start));
         }
-        if (accum.size() == 0) {
+        if (accum.size() == 0) { // add first log if empty
             // no existing segments, create a new mutable segment
             File newFile = new File(dir, Log.nameFromOffset(0));
             FileMessageSet fileMessageSet = new FileMessageSet(newFile, true);
@@ -126,13 +128,15 @@ public class Log implements ILog {
         } else {
             // there is at least one existing segment, validate and recover them/it
             // sort segments into ascending order for fast searching
-            Collections.sort(accum);
-            validateSegments(accum);
+            Collections.sort(accum); // sort segments
+            validateSegments(accum); // validate all the segments
         }
-        //
+
+        // last segment can be mutable
         LogSegment last = accum.remove(accum.size() - 1);
         last.getMessageSet().close();
         logger.info("Loading the last segment " + last.getFile().getAbsolutePath() + " in mutable mode, recovery " + needRecovery);
+
         LogSegment mutable = new LogSegment(last.getFile(), new FileMessageSet(last.getFile(), true, new AtomicBoolean(
                 needRecovery)), last.start());
         accum.add(mutable);
@@ -148,8 +152,8 @@ public class Log implements ILog {
                 LogSegment curr = segments.get(i);
                 LogSegment next = segments.get(i + 1);
                 if (curr.start() + curr.size() != next.start()) {
-                    throw new IllegalStateException("The following segments don't validate: " + curr.getFile()
-                            .getAbsolutePath() + ", " + next.getFile().getAbsolutePath());
+                    throw new IllegalStateException("The following segments don't validate: " +
+                            curr.getFile().getAbsolutePath() + ", " + next.getFile().getAbsolutePath());
                 }
             }
         }
@@ -158,19 +162,21 @@ public class Log implements ILog {
     public int getNumberOfSegments() {
         return segments.getView().size();
     }
+
     /**
      * delete all log segments in this topic-partition
      * <p>
      * The log directory will be removed also.
+     *
      * @return segment counts deleted
      */
     public int delete() {
         close();
-       int count = segments.trunc(Integer.MAX_VALUE).size();
-       Utils.deleteDirectory(dir);
-       return count;
+        int count = segments.trunc(Integer.MAX_VALUE).size(); // max size
+        Utils.deleteDirectory(dir);
+        return count;
     }
-    
+
     public void close() {
         synchronized (lock) {
             for (LogSegment seg : segments.getView()) {
@@ -187,12 +193,12 @@ public class Log implements ILog {
 
     /**
      * read messages beginning from offset
-     * 
+     *
      * @param offset next message offset
      * @param length the max package size
      * @return a MessageSet object with length data or empty
-     * @see MessageSet#Empty
      * @throws IOException any exception
+     * @see MessageSet#Empty
      */
     public MessageSet read(long offset, int length) throws IOException {
         List<LogSegment> views = segments.getView();
@@ -203,6 +209,7 @@ public class Log implements ILog {
             }
             return MessageSet.Empty;
         }
+        // read message set from the found segment
         return found.getMessageSet().read(offset - found.start(), length);
     }
 
@@ -236,8 +243,7 @@ public class Log implements ILog {
                 LogSegment lastSegment = segments.getLastView();
                 long[] writtenAndOffset = lastSegment.getMessageSet().append(validMessages);
                 if (logger.isTraceEnabled()) {
-                    logger.trace(String.format("[%s,%s] save %d messages, bytes %d", name, lastSegment.getName(),
-                            numberOfMessages, writtenAndOffset[0]));
+                    logger.trace(String.format("[%s,%s] save %d messages, bytes %d", name, lastSegment.getName(), numberOfMessages, writtenAndOffset[0]));
                 }
                 maybeFlush(numberOfMessages);
                 maybeRoll(lastSegment);
@@ -254,7 +260,7 @@ public class Log implements ILog {
 
     /**
      * check the log whether needing rolling
-     * 
+     *
      * @param lastSegment the last file segment
      * @throws IOException any file operation exception
      */
@@ -296,7 +302,7 @@ public class Log implements ILog {
 
     /**
      * Flush this log file to the physical disk
-     * 
+     *
      * @throws IOException file read error
      */
     public void flush() throws IOException {
@@ -314,13 +320,15 @@ public class Log implements ILog {
     }
 
     ///////////////////////////////////////////////////////////////////////
+
     /**
      * Find a given range object in a list of ranges by a value in that range. Does a binary
      * search over the ranges but instead of checking for equality looks within the range.
      * Takes the array size as an option in case the array grows while searching happens
-     * @param <T> Range type
-     * @param ranges data list
-     * @param value value in the list
+     *
+     * @param <T>       Range type
+     * @param ranges    data list
+     * @param value     value in the list
      * @param arraySize the max search index of the list
      * @return search result of range
      * TODO: This should move into SegmentList.scala
@@ -332,12 +340,13 @@ public class Log implements ILog {
         // check out of bounds
         if (value < first.start() || value > last.start() + last.size()) {
             throw new OffsetOutOfRangeException(format("offset %s is out of range (%s, %s)",//
-                    value,first.start(),last.start()+last.size()));
+                    value, first.start(), last.start() + last.size()));
         }
 
         // check at the end
         if (value == last.start() + last.size()) return null;
 
+        // binary search for value
         int low = 0;
         int high = arraySize - 1;
         while (low <= high) {
@@ -361,6 +370,7 @@ public class Log implements ILog {
     /**
      * Make log segment file name from offset bytes. All this does is pad out the offset number
      * with zeros so that ls sorts the files numerically
+     *
      * @param offset offset value (padding with zero)
      * @return filename with offset
      */
@@ -382,7 +392,7 @@ public class Log implements ILog {
 
     /**
      * all message size in the broker(some old messages has been deleted)
-     * 
+     *
      * @return effected message size
      */
     public long size() {
@@ -395,15 +405,16 @@ public class Log implements ILog {
 
     /**
      * get the current high watermark of the log
+     *
      * @return the offset of last message
      */
-    public long getHighwaterMark() {
+    public long getHighWaterMark() {
         return segments.getLastView().size();
     }
 
     /**
      * Delete any log segments matching the given predicate function
-     * 
+     *
      * @throws IOException
      */
     List<LogSegment> markDeletedWhile(LogSegmentFilter filter) throws IOException {
@@ -475,7 +486,7 @@ public class Log implements ILog {
     @Override
     public String toString() {
         return "Log [dir=" + dir + ", lastFlushedTime=" + //
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(lastFlushedTime.get())) + "]";
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(lastFlushedTime.get())) + "]";
     }
 
     public long getTotalOffset() {

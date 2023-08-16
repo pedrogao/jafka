@@ -50,7 +50,7 @@ public class MultiFetchHandler extends FetchHandler {
                 logger.debug(fetch.toString());
             }
         }
-        List<MessageSetSend> responses = new ArrayList<MessageSetSend>(fetches.size());
+        List<MessageSetSend> responses = new ArrayList<>(fetches.size());
         for (FetchRequest fetch : fetches) {
             responses.add(readMessageSet(fetch));
         }

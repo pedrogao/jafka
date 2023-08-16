@@ -65,7 +65,7 @@ import static java.lang.String.format;
 
 /**
  * This class handles the consumers interaction with zookeeper
- *
+ * <p>
  * Directories:
  * <p>
  * <b>1. Consumer id registry:</b>
@@ -73,7 +73,7 @@ import static java.lang.String.format;
  * <pre>
  * /consumers/[group_id]/ids[consumer_id] -- topic1,...topicN
  * </pre>
- *
+ * <p>
  * A consumer has a unique consumer id within a consumer group. A consumer registers its id as
  * an ephemeral znode and puts all topics that it subscribes to as the value of the znode. The
  * znode is deleted when the client is gone. A consumer subscribes to event changes of the
@@ -94,7 +94,7 @@ import static java.lang.String.format;
  * This is a list of all present broker brokers. A unique logical node id is configured on each
  * broker node. A broker node registers itself on start-up and creates a znode with the logical
  * node id under /brokers.
- *
+ * <p>
  * The value of the znode is a JSON String that contains
  *
  * <pre>
@@ -102,7 +102,7 @@ import static java.lang.String.format;
  * (2) a list of topics that the broker serves,
  * (3) a list of logical partitions assigned to each topic on the broker.
  * </pre>
- *
+ * <p>
  * A consumer subscribes to event changes of the broker node registry.
  *
  *
@@ -112,7 +112,7 @@ import static java.lang.String.format;
  * <pre>
  * /consumers/[group_id]/owner/[topic]/[broker_id-partition_id] -- consumer_node_id
  * </pre>
- *
+ * <p>
  * This stores the mapping before broker partitions and consumers. Each partition is owned by a
  * unique consumer within a consumer group. The mapping is reestablished after each
  * rebalancing.
@@ -124,9 +124,8 @@ import static java.lang.String.format;
  * <pre>
  * /consumers/[group_id]/offsets/[topic]/[broker_id-partition_id] -- offset_counter_value
  * </pre>
- *
+ * <p>
  * Each consumer tracks the offset of the latest message consumed for each partition.
- *
  *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.0
@@ -157,7 +156,7 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
     private final boolean enableFetcher;
 
     //cache for shutdown
-    private List<ZKRebalancerListener<?>> rebalancerListeners = new ArrayList<ZKRebalancerListener<?>>();
+    private List<ZKRebalancerListener<?>> rebalancerListeners = new ArrayList<>();
 
     public ZookeeperConsumerConnector(ConsumerConfig config) {
         this(config, true);
@@ -167,8 +166,8 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
         this.config = config;
         this.enableFetcher = enableFetcher;
         //
-        this.topicRegistry = new Pool<String, Pool<Partition, PartitionTopicInfo>>();
-        this.queues = new Pool<StringTuple, BlockingQueue<FetchedDataChunk>>();
+        this.topicRegistry = new Pool<>();
+        this.queues = new Pool<>();
         //
         connectZk();
         createFetcher();
@@ -210,7 +209,7 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
         }
         //
         ZkGroupDirs dirs = new ZkGroupDirs(config.getGroupId());
-        Map<String, List<MessageStream<T>>> ret = new HashMap<String, List<MessageStream<T>>>();
+        Map<String, List<MessageStream<T>>> ret = new HashMap<>();
         String consumerUuid = config.getConsumerId();
         if (consumerUuid == null) {
             consumerUuid = generateConsumerId();
@@ -221,22 +220,22 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
         //consumerIdString => groupid_consumerid
         final String consumerIdString = config.getGroupId() + "_" + consumerUuid;
         final TopicCount topicCount = new TopicCount(consumerIdString, topicCountMap);
+
         for (Map.Entry<String, Set<String>> e : topicCount.getConsumerThreadIdsPerTopic().entrySet()) {
             final String topic = e.getKey();
             final Set<String> threadIdSet = e.getValue();
-            final List<MessageStream<T>> streamList = new ArrayList<MessageStream<T>>();
+            final List<MessageStream<T>> streamList = new ArrayList<>();
             for (String threadId : threadIdSet) {
-                LinkedBlockingQueue<FetchedDataChunk> stream = new LinkedBlockingQueue<FetchedDataChunk>(
-                        config.getMaxQueuedChunks());
+                LinkedBlockingQueue<FetchedDataChunk> stream = new LinkedBlockingQueue<>(config.getMaxQueuedChunks());
                 queues.put(new StringTuple(topic, threadId), stream);
-                streamList.add(new MessageStream<T>(topic, stream, config.getConsumerTimeoutMs(), decoder));
+                streamList.add(new MessageStream<>(topic, stream, config.getConsumerTimeoutMs(), decoder));
             }
             ret.put(topic, streamList);
             logger.debug("adding topic " + topic + " and stream to map.");
         }
 
         //listener to consumer and partition changes
-        ZKRebalancerListener<T> loadBalancerListener = new ZKRebalancerListener<T>(config.getGroupId(),dirs,topicCount, consumerIdString, ret);
+        ZKRebalancerListener<T> loadBalancerListener = new ZKRebalancerListener<>(config.getGroupId(), dirs, topicCount, consumerIdString, ret);
         this.rebalancerListeners.add(loadBalancerListener);
         // register consumer first
         loadBalancerListener.registerConsumer();
@@ -359,7 +358,7 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
         logger.debug("Connected to zookeeper at " + config.getZkConnect());
     }
 
-    class ZKRebalancerListener<T> implements IZkChildListener, IZkStateListener , Runnable, Closeable {
+    class ZKRebalancerListener<T> implements IZkChildListener, IZkStateListener, Runnable, Closeable {
 
         final String group;
         final TopicCount topicCount;
@@ -395,11 +394,11 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
             this.watcherExecutorThread.start();
         }
 
-        public void handleChildChange(String parentPath, List<String> currentChilds) throws Exception {
+        public void handleChildChange(String parentPath, List<String> currentChilds) {
             lock.lock();
             try {
                 logger.info("handle consumer changed: group={} consumerId={} parentPath={} currentChilds={}",
-                        group,consumerIdString,parentPath,currentChilds);
+                        group, consumerIdString, parentPath, currentChilds);
                 isWatcherTriggered = true;
                 cond.signalAll();
             } finally {
@@ -462,11 +461,10 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
                     Cluster cluster = ZkUtils.getCluster(zkClient);
                     try {
                         done = rebalance(cluster);
-                    } catch (ZkNoNodeException znne){
-                        logger.info("some consumers dispeared during rebalancing: {}",znne.getMessage());
+                    } catch (ZkNoNodeException znne) {
+                        logger.info("some consumers dispeared during rebalancing: {}", znne.getMessage());
                         registerConsumer();
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         /*
                          * occasionally, we may hit a ZK exception because the ZK state is
                          * changing while we are iterating. For example, a ZK node can
@@ -487,7 +485,7 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
                         logger.warn("Rebalancing attempt failed. Clearing the cache before the next rebalancing operation is triggered");
                     }
                     //
-                    closeFetchersForQueues( messagesStreams, queues.values());
+                    closeFetchersForQueues(messagesStreams, queues.values());
                     try {
                         Thread.sleep(config.getRebalanceBackoffMs());
                     } catch (InterruptedException e) {
@@ -530,8 +528,8 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
                 final int nPartsPerConsumer = curBrokerPartitions.size() / curConsumers.size();
                 final int nConsumersWithExtraPart = curBrokerPartitions.size() % curConsumers.size();
                 logger.info("Consumer {} rebalancing the following {} partitions of topic {}:\n\t{}\n\twith {} consumers:\n\t{}",//
-                        consumerIdString,curBrokerPartitions.size(),topic,curBrokerPartitions,curConsumers.size(),curConsumers
-                        );
+                        consumerIdString, curBrokerPartitions.size(), topic, curBrokerPartitions, curConsumers.size(), curConsumers
+                );
                 if (logger.isDebugEnabled()) {
                     StringBuilder buf = new StringBuilder(1024);
                     buf.append("[").append(topic).append("] preassigning details:");
@@ -560,8 +558,8 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
                      * The first few consumers pick up an extra partition, if any.
                      */
                     if (nParts <= 0) {
-                        logger.warn("No broker partition of topic {} for consumer {}, {} partitions and {} consumers",topic,consumerThreadId,//
-                                curBrokerPartitions.size(),curConsumers.size());
+                        logger.warn("No broker partition of topic {} for consumer {}, {} partitions and {} consumers", topic, consumerThreadId,//
+                                curBrokerPartitions.size(), curConsumers.size());
                     } else {
                         for (int i = startPart; i < startPart + nParts; i++) {
                             String brokerPartition = curBrokerPartitions.get(i);
@@ -730,7 +728,7 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
                     queuesToBeCleared.add(e.getValue());
                 }
             }
-            closeFetchersForQueues( messagesStreams2, queuesToBeCleared);
+            closeFetchersForQueues(messagesStreams2, queuesToBeCleared);
         }
 
         private void closeFetchersForQueues(Map<String, List<MessageStream<T>>> messageStreams,
@@ -777,20 +775,21 @@ public class ZookeeperConsumerConnector implements ConsumerConnector {
             // nothing to do
         }
         ///////////////////////////////////////////////////////////
+
         /**
          * register the consumer in the zookeeper
          * <p>
-         *     path: /consumers/groupid/ids/groupid-consumerid
-         *     data: {topic:count,topic:count}
+         * path: /consumers/groupid/ids/groupid-consumerid
+         * data: {topic:count,topic:count}
          * </p>
          */
-        void registerConsumer(){
+        void registerConsumer() {
             final String path = zkGroupDirs.consumerRegistryDir + "/" + consumerIdString;
             final String data = topicCount.toJsonString();
             boolean ok = true;
             try {
                 ZkUtils.createEphemeralPathExpectConflict(zkClient, path, data);
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 ok = false;
             }
             logger.info(format("register consumer in zookeeper [%s] => [%s] success?=%s", path, data, ok));

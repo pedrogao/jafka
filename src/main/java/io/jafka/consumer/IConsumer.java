@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +28,7 @@ import io.jafka.message.ByteBufferMessageSet;
 
 /**
  * Consumer Interface
- * 
+ *
  * @author adyliu (imxylz@gmail.com)
  * @since 1.1
  */
@@ -36,7 +36,7 @@ public interface IConsumer extends Closeable {
 
     /**
      * fetch some messages from the broker
-     * 
+     *
      * @param request request arguments
      * @return bytebuffer message
      * @throws IOException if an I/O error occurs
@@ -46,7 +46,7 @@ public interface IConsumer extends Closeable {
 
     /**
      * get before offsets of message
-     * 
+     *
      * @param topic message topic
      * @param partition topic partition
      * @param time the log file created time {@link OffsetRequest#time}
@@ -58,7 +58,7 @@ public interface IConsumer extends Closeable {
 
     /**
      * get the latest offset
-     * 
+     *
      * @param topic topic name
      * @param partition partition index
      * @return latest offset if topic exist; -1 otherwise
@@ -68,7 +68,7 @@ public interface IConsumer extends Closeable {
 
     /**
      * fetch some topic with given arguments
-     * 
+     *
      * @param fetches fetching arguments
      * @return multi bytebuffer messages
      * @throws IOException if an I/O error occurs

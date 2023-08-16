@@ -30,12 +30,12 @@ import io.jafka.utils.IteratorTemplate;
 
 /**
  * A sequence of messages stored in a byte buffer
- *
+ * <p>
  * There are two ways to create a ByteBufferMessageSet
- *
+ * <p>
  * Option 1: From a ByteBuffer which already contains the serialized
  * message set. Consumers will use this method.
- *
+ * <p>
  * Option 2: Give it a list of messages along with instructions relating to
  * serialization format. Producers will use this method.
  *
@@ -71,12 +71,14 @@ public class ByteBufferMessageSet extends MessageSet {
         this(CompressionCodec.NoCompressionCodec, messages);
     }
 
-    /** get valid bytes of buffer
+    /**
+     * get valid bytes of buffer
      * <p>
      * The size of buffer is equal or larger than the size of valid messages.
      * The last message maybe is not integrate.
      * </p>
-     * @return the validBytes 
+     *
+     * @return the validBytes
      */
     public long getValidBytes() {
         return validBytes;
@@ -211,6 +213,7 @@ public class ByteBufferMessageSet extends MessageSet {
 
     /**
      * check max size of each message
+     *
      * @param maxMessageSize the max size for each message
      */
     public void verifyMessageSize(int maxMessageSize) {

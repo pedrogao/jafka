@@ -106,16 +106,12 @@ public class ConsoleConsumer {
             tryCleanupZookeeper(options.valueOf(zkConnectOpt), options.valueOf(groupIdOpt));
         }
         //
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            @Override
-            public void run() {
-                Closer.closeQuietly(connector);
-                if (!options.has(groupIdOpt)) {
-                    tryCleanupZookeeper(options.valueOf(zkConnectOpt), options.valueOf(groupIdOpt));
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Closer.closeQuietly(connector);
+            if (!options.has(groupIdOpt)) {
+                tryCleanupZookeeper(options.valueOf(zkConnectOpt), options.valueOf(groupIdOpt));
             }
-        });
+        }));
         //
         MessageStream<Message> stream = connector.createMessageStreams(ImmutableMap.of(topic, 1), new MessageEncoders()).get(topic).get(0);
         final MessageFormatter formatter = messageFormatterClass.newInstance();

@@ -71,7 +71,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 send100Continue(ctx);
             }
             body = new ByteArrayOutputStream(64);
-            args = new HashMap<String, String>(4);
+            args = new HashMap<>(4);
             //
             if (request.getMethod() != HttpMethod.POST) {
                 sendStatusMessage(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED, "POST METHOD REQUIRED");

@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +33,7 @@ import org.junit.Test;
 public class SegmentListTest {
 
     private SegmentList createSegmentList(int count) {
-        List<LogSegment> segments = new ArrayList<LogSegment>();
+        List<LogSegment> segments = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             segments.add(new LogSegment(null, null, i));
         }
@@ -51,16 +51,13 @@ public class SegmentListTest {
         final SegmentList segmentList = createSegmentList(count);
         final CountDownLatch latch = new CountDownLatch(count);
         for (int i = 0; i < count; i++) {
-            new Thread() {
-
-                public void run() {
-                    try {
-                        segmentList.append(new LogSegment(null, null, 0));
-                    } finally {
-                        latch.countDown();
-                    }
+            new Thread(() -> {
+                try {
+                    segmentList.append(new LogSegment(null, null, 0));
+                } finally {
+                    latch.countDown();
                 }
-            }.start();
+            }).start();
         }
         latch.await();
         assertEquals(count + count, segmentList.getView().size());
@@ -78,16 +75,13 @@ public class SegmentListTest {
         final CountDownLatch latch = new CountDownLatch(count);
         final AtomicInteger deletedCount = new AtomicInteger();
         for (int i = 0; i < count; i++) {
-            new Thread() {
-
-                public void run() {
-                    try {
-                        deletedCount.addAndGet(segmentList.trunc(del).size());
-                    } finally {
-                        latch.countDown();
-                    }
+            new Thread(() -> {
+                try {
+                    deletedCount.addAndGet(segmentList.trunc(del).size());
+                } finally {
+                    latch.countDown();
                 }
-            }.start();
+            }).start();
         }
         latch.await();
         assertEquals(totalCount - deletedCount.get(), segmentList.getView().size());

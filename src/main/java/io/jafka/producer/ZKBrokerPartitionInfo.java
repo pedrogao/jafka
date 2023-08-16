@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -98,17 +98,17 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
                 topicBrokerPartitions.put(topic, brokerPartitions);
                 return brokerPartitions;
             } else {
-                return new TreeSet<Partition>(brokerPartitions);
+                return new TreeSet<>(brokerPartitions);
             }
         }
     }
-    
+
     private SortedSet<Partition> bootstrapWithExistingBrokers(String topic) {
         List<String> brokers = ZkUtils.getChildrenParentMayNotExist(zkClient, ZkUtils.BrokerIdsPath);
         if (brokers == null) {
             throw new NoBrokersForPartitionException("no brokers");
         }
-        TreeSet<Partition> partitions = new TreeSet<Partition>();
+        TreeSet<Partition> partitions = new TreeSet<>();
         for (String brokerId : brokers) {
             partitions.add(new Partition(Integer.valueOf(brokerId), 0));
         }
@@ -131,7 +131,7 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
      * @return a mapping from topic to sequence of (brokerId, numPartitions)
      */
     private Map<String, SortedSet<Partition>> getZKTopicPartitionInfo(Map<Integer, Broker> allBrokers) {
-        final Map<String, SortedSet<Partition>> brokerPartitionsPerTopic = new HashMap<String, SortedSet<Partition>>();
+        final Map<String, SortedSet<Partition>> brokerPartitionsPerTopic = new HashMap<>();
         ZkUtils.makeSurePersistentPathExists(zkClient, ZkUtils.BrokerTopicsPath);
         List<String> topics = ZkUtils.getChildrenParentMayNotExist(zkClient, ZkUtils.BrokerTopicsPath);
         for (String topic : topics) {
@@ -139,8 +139,8 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
             String brokerTopicPath = ZkUtils.BrokerTopicsPath + "/" + topic;
             List<String> brokerList = ZkUtils.getChildrenParentMayNotExist(zkClient, brokerTopicPath);
             //
-            final SortedSet<Partition> sortedBrokerPartitions = new TreeSet<Partition>();
-            final Set<Integer> existBids = new HashSet<Integer>();
+            final SortedSet<Partition> sortedBrokerPartitions = new TreeSet<>();
+            final Set<Integer> existBids = new HashSet<>();
             for (String bid : brokerList) {
                 final int ibid = Integer.parseInt(bid);
                 final String numPath = brokerTopicPath + "/" + bid;
@@ -151,9 +151,9 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
                 existBids.add(ibid);
             }
             // add all brokers after topic created
-            for(Integer bid:allBrokers.keySet()){
-                if(!existBids.contains(bid)){
-                    sortedBrokerPartitions.add(new Partition(bid,0));// this broker run after topic created
+            for (Integer bid : allBrokers.keySet()) {
+                if (!existBids.contains(bid)) {
+                    sortedBrokerPartitions.add(new Partition(bid, 0));// this broker run after topic created
                 }
             }
             logger.debug("Broker ids and # of partitions on each for topic: " + topic + " = " + sortedBrokerPartitions);
@@ -163,7 +163,7 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
     }
 
     private Map<Integer, Broker> getZKBrokerInfo() {
-        Map<Integer, Broker> brokers = new HashMap<Integer, Broker>();
+        Map<Integer, Broker> brokers = new HashMap<>();
         List<String> allBrokersIds = ZkUtils.getChildrenParentMayNotExist(zkClient, ZkUtils.BrokerIdsPath);
         if (allBrokersIds != null) {
             logger.info("read all brokers count: " + allBrokersIds.size());
@@ -195,11 +195,11 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
         private Map<Integer, Broker> originBrokerIds;
 
         public BrokerTopicsListener(Map<String, SortedSet<Partition>> originalBrokerTopicsParitions,
-                Map<Integer, Broker> originBrokerIds) {
+                                    Map<Integer, Broker> originBrokerIds) {
             super();
-            this.originalBrokerTopicsParitions = new LinkedHashMap<String, SortedSet<Partition>>(
+            this.originalBrokerTopicsParitions = new LinkedHashMap<>(
                     originalBrokerTopicsParitions);
-            this.originBrokerIds = new LinkedHashMap<Integer, Broker>(originBrokerIds);
+            this.originBrokerIds = new LinkedHashMap<>(originBrokerIds);
             logger.debug("[BrokerTopicsListener] Creating broker topics listener to watch the following paths - \n" + "/broker/topics, /broker/topics/<topic>, /broker/<ids>");
             logger.debug("[BrokerTopicsListener] Initialized this broker topics listener with initial mapping of broker id to " + "partition id per topic with " + originalBrokerTopicsParitions);
         }
@@ -240,7 +240,7 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
 
 
         private void processBrokerChange(String parentPath, List<String> curChilds) {
-            final Map<Integer, Broker> oldBrokerIdMap = new HashMap<Integer, Broker>(originBrokerIds);
+            final Map<Integer, Broker> oldBrokerIdMap = new HashMap<>(originBrokerIds);
             for (int i = curChilds.size() - 1; i >= 0; i--) {
                 Integer brokerId = Integer.valueOf(curChilds.get(i));
                 if (oldBrokerIdMap.remove(brokerId) != null) {//old topic
@@ -252,9 +252,9 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
             for (String newBroker : curChilds) {
                 final String brokerInfo = ZkUtils.readData(zkClient, ZkUtils.BrokerIdsPath + "/" + newBroker);
                 final Integer newBrokerId = Integer.valueOf(newBroker);
-                final Broker broker = Broker.createBroker(newBrokerId.intValue(),brokerInfo);
+                final Broker broker = Broker.createBroker(newBrokerId.intValue(), brokerInfo);
                 allBrokers.put(newBrokerId, broker);
-                callback.producerCbk(broker.id, broker.host, broker.port,broker.autoCreated);
+                callback.producerCbk(broker.id, broker.host, broker.port, broker.autoCreated);
             }
             //
             //remove all dead broker and remove all broker-partition from topic list
@@ -279,7 +279,7 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
 
             SortedSet<Partition> updatedBrokerParts = getBrokerPartitions(zkClient, topic, brokerList);
             SortedSet<Partition> oldBrokerParts = topicBrokerPartitions.get(topic);
-            SortedSet<Partition> mergedBrokerParts = new TreeSet<Partition>();
+            SortedSet<Partition> mergedBrokerParts = new TreeSet<>();
             if (oldBrokerParts != null) {
                 mergedBrokerParts.addAll(oldBrokerParts);
             }
@@ -305,11 +305,11 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
 
         private void resetState() {
             logger.debug("[BrokerTopicsListener] Before reseting broker topic partitions state " + this.originalBrokerTopicsParitions);
-            this.originalBrokerTopicsParitions = new HashMap<String, SortedSet<Partition>>(topicBrokerPartitions);
+            this.originalBrokerTopicsParitions = new HashMap<>(topicBrokerPartitions);
             logger.debug("[BrokerTopicsListener] After reseting broker topic partitions state " + originalBrokerTopicsParitions);
             //
             logger.debug("[BrokerTopicsListener] Before reseting broker id map state " + originBrokerIds);
-            this.originBrokerIds = new HashMap<Integer, Broker>(allBrokers);
+            this.originBrokerIds = new HashMap<>(allBrokers);
             logger.debug("[BrokerTopicsListener] After reseting broker id map state " + originBrokerIds);
         }
     }
@@ -343,14 +343,14 @@ public class ZKBrokerPartitionInfo implements BrokerPartitionInfo {
     /**
      * Generate a mapping from broker id to (brokerId, numPartitions) for the list of brokers
      * specified
-     * 
+     *
      * @param topic the topic to which the brokers have registered
      * @param brokerList the list of brokers for which the partitions info is to be generated
      * @return a sequence of (brokerId, numPartitions) for brokers in brokerList
      */
     private static SortedSet<Partition> getBrokerPartitions(ZkClient zkClient, String topic, List<?> brokerList) {
         final String brokerTopicPath = ZkUtils.BrokerTopicsPath + "/" + topic;
-        final SortedSet<Partition> brokerParts = new TreeSet<Partition>();
+        final SortedSet<Partition> brokerParts = new TreeSet<>();
         for (Object brokerId : brokerList) {
             final Integer bid = Integer.valueOf(brokerId.toString());
             final Integer numPartition = Integer.valueOf(ZkUtils.readData(zkClient, brokerTopicPath + "/" + bid));

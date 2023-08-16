@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -77,9 +77,9 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
                     BrokerPartitionInfo brokerPartitionInfo) {
         super();
         this.config = config;
-        this.partitioner = partitioner;
+        this.partitioner = partitioner; // 分区分配器
         if (producerPool == null) {
-            producerPool = new ProducerPool<V>(config, getEncoder());
+            producerPool = new ProducerPool<>(config, getEncoder());
         }
         this.producerPool = producerPool;
         this.populateProducerPool = populateProducerPool;
@@ -103,7 +103,7 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
         if (this.populateProducerPool) {
             for (Map.Entry<Integer, Broker> e : this.brokerPartitionInfo.getAllBrokerInfo().entrySet()) {
                 Broker b = e.getValue();
-                producerPool.addProducer(new Broker(e.getKey(), b.host, b.host, b.port,b.autoCreated));
+                producerPool.addProducer(new Broker(e.getKey(), b.host, b.host, b.port, b.autoCreated));
             }
         }
     }
@@ -154,7 +154,7 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
     public Producer(ProducerConfig config, Encoder<V> encoder, EventHandler<V> eventHandler, CallbackHandler<V> cbkHandler, Partitioner<K> partitioner) {
         this(config, //
                 partitioner,//
-                new ProducerPool<V>(config, encoder, eventHandler, cbkHandler), //
+                new ProducerPool<>(config, encoder, eventHandler, cbkHandler), //
                 true, //
                 null);
     }
@@ -168,9 +168,9 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
     public void send(ProducerData<K, V> data) throws NoBrokersForPartitionException, InvalidPartitionException {
         if (data == null) return;
         if (zkEnabled) {
-            zkSend(data);
+            zkSend(data); // send by zookeeper
         } else {
-            configSend(data);
+            configSend(data); // send by config
         }
     }
 
@@ -185,11 +185,11 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
         Broker brokerInfoOpt = null;
         Partition brokerIdPartition = null;
         while (numRetries <= config.getZkReadRetries() && brokerInfoOpt == null) {
-            if (numRetries > 0) {
+            if (numRetries > 0) { // update info if send failed
                 logger.info("Try #" + numRetries + " ZK producer cache is stale. Refreshing it by reading from ZK again");
                 brokerPartitionInfo.updateInfo();
             }
-            List<Partition> partitions = new ArrayList<Partition>(getPartitionListForTopic(data));
+            List<Partition> partitions = new ArrayList<>(getPartitionListForTopic(data));
             brokerIdPartition = partitions.get(getPartition(data.getKey(), partitions.size()));
             if (brokerIdPartition != null) {
                 brokerInfoOpt = brokerPartitionInfo.getBrokerInfo(brokerIdPartition.brokerId);
@@ -219,9 +219,9 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
         return partition;
     }
 
-    public void producerCbk(int bid, String host, int port,boolean autocreated) {
+    public void producerCbk(int bid, String host, int port, boolean autocreated) {
         if (populateProducerPool) {
-            producerPool.addProducer(new Broker(bid, host, host, port,autocreated));
+            producerPool.addProducer(new Broker(bid, host, host, port, autocreated));
         } else {
             logger.debug("Skipping the callback since populateProducerPool = false");
         }
@@ -231,7 +231,7 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
         Collection<Partition> topicPartitionsList = getPartitionListForTopic(pd);
         //FIXME: random Broker???
         int randomBrokerId = random.nextInt(topicPartitionsList.size());
-        final Partition brokerIdPartition = new ArrayList<Partition>(topicPartitionsList).get(randomBrokerId);
+        final Partition brokerIdPartition = new ArrayList<>(topicPartitionsList).get(randomBrokerId);
         return this.producerPool.getProducerPoolData(pd.getTopic(),//
                 new Partition(brokerIdPartition.brokerId, ProducerRequest.RandomPartition), pd.getData());
     }
@@ -251,11 +251,10 @@ public class Producer<K, V> implements BrokerPartitionInfo.Callback, IProducer<K
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Partitioner<K> getPartitioner() {
         if (partitioner == null) {
-            partitioner = (Partitioner<K>) Utils.getObject(config.getPartitionerClass());
+            partitioner = Utils.getObject(config.getPartitionerClass());
         }
         return partitioner;
     }

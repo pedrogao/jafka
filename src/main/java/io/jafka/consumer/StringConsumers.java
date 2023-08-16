@@ -100,7 +100,7 @@ public class StringConsumers implements Closeable {
         for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
             String name = (String) e.getKey();
             if (name.startsWith(JAFKA_PREFIX)) {
-                props.put(name.substring(JAFKA_PREFIX.length()), (String) e.getValue());
+                props.put(name.substring(JAFKA_PREFIX.length()), e.getValue());
             }
         }
         return buildConsumer(props, topic, groupId, listener, threads);

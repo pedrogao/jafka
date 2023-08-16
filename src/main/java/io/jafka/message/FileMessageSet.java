@@ -72,11 +72,11 @@ public class FileMessageSet extends MessageSet {
             if (needRecover.get()) {
                 // set the file position to the end of the file for appending messages
                 long startMs = System.currentTimeMillis();
-                long truncated = recover();
+                long truncated = recover(); // recover current segment file from 0
                 logger.info("Recovery succeeded in " + (System.currentTimeMillis() - startMs) / 1000 + " seconds. " + truncated + " bytes truncated.");
             } else {
                 setSize.set(channel.size());
-                setHighWaterMark.set(getSizeInBytes());
+                setHighWaterMark.set(getSizeInBytes()); // highWater mark, the max offset of the message set
                 channel.position(channel.size());
             }
         } else {
@@ -128,7 +128,7 @@ public class FileMessageSet extends MessageSet {
     }
 
     public Iterator<MessageAndOffset> iterator() {
-        return new IteratorTemplate<MessageAndOffset>() {
+        return new IteratorTemplate<>() {
 
             long location = offset;
 

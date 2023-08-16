@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -66,7 +66,7 @@ public class Server implements Closeable {
     //
     public Server(ServerConfig config) {
         this.config = config;
-        logDir = new File(config.getLogDir());
+        logDir = new File(config.getLogDir()); // 日志
         if (!logDir.exists()) {
             logDir.mkdirs();
         }
@@ -77,12 +77,17 @@ public class Server implements Closeable {
             final long start = System.currentTimeMillis();
             logger.info("Starting Jafka server {} (brokerid={})", serverInfo.getVersion(), this.config.getBrokerId());
             Utils.registerMBean(serverInfo);
+
+            // cleanShutDownFile常见的情况是在关闭jafka时，会创建一个文件，如果下次启动时，发现这个文件存在，就不会进行恢复
+            // 如果是crash后关闭，那么该文件就不会存在，就会进行恢复
             boolean needRecovery = true;
             File cleanShutDownFile = new File(new File(config.getLogDir()), CLEAN_SHUTDOWN_FILE); //check recover or not
             if (cleanShutDownFile.exists()) {
                 needRecovery = false;
                 cleanShutDownFile.delete();
             }
+
+            // 日志消息存储
             this.logManager = new LogManager(config,//
                     scheduler,//
                     1000L * 60 * config.getLogCleanupIntervalMinutes(),//
@@ -91,11 +96,13 @@ public class Server implements Closeable {
             this.logManager.setRollingStrategy(config.getRollingStrategy());
             logManager.load();
 
+            // 启动MQ消息处理服务器
             RequestHandlers handlers = new RequestHandlers(logManager);
             socketServer = new SocketServer(handlers, config);
             Utils.registerMBean(socketServer.getStats());
             socketServer.startup();
-            //
+
+            // 启动 http 服务器
             final int httpPort = config.getHttpPort();
             if (httpPort > 0) {
                 HttpRequestHandler httpRequestHandler = new HttpRequestHandler(logManager);
@@ -108,10 +115,10 @@ public class Server implements Closeable {
              * Registers this broker in ZK. After this, consumers can connect to broker. So
              * this should happen after socket server start.
              */
-            logManager.startup();
-            final long cost = (System.currentTimeMillis() - start) / 1000;
+            logManager.startup(); // 注册到ZK中
+            final long cost = (System.currentTimeMillis() - start) / 1000; // 启动耗时
             logger.info("Jafka(brokerid={}) started at *:{}, cost {} seconds", config.getBrokerId(), config.getPort(), cost);
-            serverInfo.started();
+            serverInfo.started(); // 记录启动时间而已
         } catch (Exception ex) {
             logger.error("========================================");
             logger.error("Fatal error during startup.", ex);

@@ -30,11 +30,11 @@ import io.jafka.cluster.Partition;
  */
 public class ProducerPoolData<V> {
 
-    public final String topic;
+    public final String topic; // 主题
 
-    public final Partition partition;
+    public final Partition partition; // 分区
 
-    public final List<V> data;
+    public final List<V> data; // 数据列表，一次可发送多条消息
 
     public ProducerPoolData(String topic, Partition partition, List<V> data) {
         super();

@@ -111,7 +111,7 @@ public class ProducerSendThread<T> extends Thread {
 
     private List<QueueItem<T>> processEvents() {
         long lastSend = System.currentTimeMillis();
-        final List<QueueItem<T>> events = new ArrayList<QueueItem<T>>();
+        final List<QueueItem<T>> events = new ArrayList<>();
         boolean full = false;
         while (!shutdown) {
             try {

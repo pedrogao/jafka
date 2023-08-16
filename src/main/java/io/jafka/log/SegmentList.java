@@ -50,7 +50,7 @@ public class SegmentList {
      * @param segment segment to append
      */
     public void append(LogSegment segment) {
-        while (true) {
+        while (true) { // CAS loop
             List<LogSegment> curr = contents.get();
             List<LogSegment> updated = new ArrayList<>(curr);
             updated.add(segment);
@@ -63,7 +63,7 @@ public class SegmentList {
     /**
      * Delete the first n items from the list
      *
-     * @param newStart the logsegment who's index smaller than newStart will be deleted.
+     * @param newStart the logSegment who's index smaller than newStart will be deleted.
      * @return the deleted segment
      */
     public List<LogSegment> trunc(int newStart) {

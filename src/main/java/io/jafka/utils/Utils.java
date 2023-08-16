@@ -165,7 +165,7 @@ public class Utils {
 
     public static KV<String, Integer> getTopicPartition(String topicPartition) {
         int index = topicPartition.lastIndexOf('-');
-        return new KV<String, Integer>(topicPartition.substring(0, index),//
+        return new KV<>(topicPartition.substring(0, index),//
                 Integer.valueOf(topicPartition.substring(index + 1)));
     }
 
@@ -451,11 +451,7 @@ public class Utils {
         }
         try {
             return (E) Class.forName(className).newInstance();
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

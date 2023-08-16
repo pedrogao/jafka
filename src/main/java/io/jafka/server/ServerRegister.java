@@ -59,7 +59,7 @@ public class ServerRegister implements IZkStateListener, Closeable {
 
     private ZkClient zkClient;
 
-    private Set<String> topics = new LinkedHashSet<String>();
+    private final Set<String> topics = new LinkedHashSet<>();
 
     private final Object lock = new Object();
 

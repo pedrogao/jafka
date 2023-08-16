@@ -223,8 +223,7 @@ public class Message implements ICalculable {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Message) {
-            Message m = (Message) obj;
+        if (obj instanceof Message m) {
             return getSizeInBytes() == m.getSizeInBytes()//
                     && attributes() == m.attributes()//
                     && checksum() == m.checksum()//

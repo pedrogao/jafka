@@ -47,7 +47,7 @@ public class MessageStream<T> implements Iterable<T> {
         this.queue = queue;
         this.consumerTimeoutMs = consumerTimeoutMs;
         this.decoder = decoder;
-        this.consumerIterator = new ConsumerIterator<T>(topic, queue, consumerTimeoutMs, decoder);
+        this.consumerIterator = new ConsumerIterator<>(topic, queue, consumerTimeoutMs, decoder);
     }
 
     public Iterator<T> iterator() {
